@@ -24,9 +24,16 @@ const (
 	headerArgocdProjName = "Argocd-Project-Name"
 )
 
+type server struct {
+	configs map[string]TouchConfig
+}
+
 func Run(client *dynamic.DynamicClient, configs map[string]TouchConfig) error {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+
+	srv := &server{configs: configs}
+	router.GET("extension", srv.handleExtensionTar)
 	v1 := router.Group("/v1")
 	v1.Use(validateArgocdHeaders())
 
@@ -36,6 +43,33 @@ func Run(client *dynamic.DynamicClient, configs map[string]TouchConfig) error {
 		v1.PUT(resource+"/:namespace/:name", handleTouch(client, resource, config))
 	}
 
+	return srv.start(router)
+}
+
+func validateArgocdHeaders() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if validateHeader(c, headerArgocdAppName) {
+			return
+		}
+		if validateHeader(c, headerArgocdProjName) {
+			return
+		}
+		c.Next()
+	}
+}
+
+func validateHeader(c *gin.Context, name string) bool {
+	if argocdApp := c.GetHeader(name); argocdApp == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Missing required header: " + name,
+		})
+		c.Abort()
+		return true
+	}
+	return false
+}
+
+func (s *server) start(router *gin.Engine) error {
 	slog.With("port", ":8080").Info("Starting server")
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -63,29 +97,6 @@ func Run(client *dynamic.DynamicClient, configs map[string]TouchConfig) error {
 
 	slog.Info("Server exiting")
 	return nil
-}
-
-func validateArgocdHeaders() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if validateHeader(c, headerArgocdAppName) {
-			return
-		}
-		if validateHeader(c, headerArgocdProjName) {
-			return
-		}
-		c.Next()
-	}
-}
-
-func validateHeader(c *gin.Context, name string) bool {
-	if argocdApp := c.GetHeader(name); argocdApp == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Missing required header: " + name,
-		})
-		c.Abort()
-		return true
-	}
-	return false
 }
 
 func handleTouch(client *dynamic.DynamicClient, resource string, config TouchConfig) gin.HandlerFunc {
