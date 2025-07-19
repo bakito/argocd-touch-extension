@@ -13,12 +13,10 @@ import (
 
 	"github.com/bakito/argocd-touch-extension/internal/config"
 	"github.com/bakito/argocd-touch-extension/internal/extension"
+	"github.com/bakito/argocd-touch-extension/internal/k8s"
 	"github.com/gin-gonic/gin"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/dynamic"
 )
 
 const (
@@ -26,7 +24,7 @@ const (
 	headerArgocdProjName = "Argocd-Project-Name"
 )
 
-func Run(client dynamic.Interface, ext extension.Extension) error {
+func Run(client k8s.Client, ext extension.Extension) error {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
@@ -42,7 +40,7 @@ func Run(client dynamic.Interface, ext extension.Extension) error {
 	for name, res := range ext.Resources() {
 		slog.With("resource", name, "group", res.Group, "version", res.Version, "kind", res.Kind).
 			Info("Registering handler")
-		v1Touch.PUT(name+"/:namespace/:name", handleTouch(client, name, res))
+		v1Touch.PUT(name+"/:namespace/:name", handleTouch(client, res))
 	}
 
 	return start(router)
@@ -101,23 +99,12 @@ func start(router *gin.Engine) error {
 	return nil
 }
 
-func handleTouch(client dynamic.Interface, resource string, res config.Resource) gin.HandlerFunc {
+func handleTouch(cl k8s.Client, res config.Resource) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		namespace := c.Param("namespace")
 		name := c.Param("name")
-		cl := client.Resource(schema.GroupVersionResource{Group: res.Group, Version: res.Version, Resource: resource}).
-			Namespace(namespace)
 
-		_, err := cl.Patch(
-			c,
-			name,
-			types.MergePatchType,
-			[]byte(
-				fmt.Sprintf(`{"metadata":{"annotations":{"argocd.bakito.ch/touch":%q}}}`, metav1.Now().Format(time.RFC3339)),
-			),
-			metav1.PatchOptions{},
-		)
-		if err != nil {
+		if err := cl.PatchAnnotation(c, res, namespace, name, "argocd.bakito.ch/touch", metav1.Now().Format(time.RFC3339)); err != nil {
 			var se *kerr.StatusError
 			if errors.As(err, &se) {
 				c.JSON(int(se.Status().Code), err)

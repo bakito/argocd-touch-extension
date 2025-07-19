@@ -8,31 +8,31 @@ import (
 )
 
 type Application struct {
-	clients *k8s.Clients
-	config  config.TouchConfig
+	client k8s.Client
+	config config.TouchConfig
 }
 
 func New(cfg config.TouchConfig) (*Application, error) {
-	clients, err := k8s.NewClients()
+	client, err := k8s.NewClient()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Application{
-		clients: clients,
-		config:  cfg,
+		client: client,
+		config: cfg,
 	}, nil
 }
 
 func (a *Application) Run() error {
-	ext, err := extension.New(a.config, a.clients.Discovery)
+	ext, err := a.Extension()
 	if err != nil {
 		return err
 	}
 
-	return server.Run(a.clients.Dynamic, ext)
+	return server.Run(a.client, ext)
 }
 
 func (a *Application) Extension() (extension.Extension, error) {
-	return extension.New(a.config, a.clients.Discovery)
+	return extension.New(a.config, a.client)
 }

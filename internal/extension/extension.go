@@ -10,8 +10,7 @@ import (
 	"time"
 
 	"github.com/bakito/argocd-touch-extension/internal/config"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
+	"github.com/bakito/argocd-touch-extension/internal/k8s"
 )
 
 type templateConfig struct {
@@ -59,6 +58,7 @@ type Extension interface {
 	ArgoCDDeployment() []byte
 	ProxyRBAC() []byte
 }
+
 type extension struct {
 	cfg              config.TouchConfig
 	argocdConfig     []byte
@@ -69,14 +69,16 @@ type extension struct {
 	resourcesByGroup map[string][]string
 }
 
-func New(cfg config.TouchConfig, dcl discovery.DiscoveryInterface) (Extension, error) {
+func New(cfg config.TouchConfig, cl k8s.Client) (Extension, error) {
+	resources, err := cl.SetNameAndVersion(cfg.Resources)
+	if err != nil {
+		return nil, &Error{"version resolution", err}
+	}
+	cfg.Resources = resources
+
 	ext := &extension{
 		cfg:              cfg,
 		resourcesByGroup: make(map[string][]string),
-	}
-
-	if err := ext.resolveResourceVersions(dcl); err != nil {
-		return nil, &Error{"version resolution", err}
 	}
 
 	ext.consolidateResources()
@@ -86,21 +88,6 @@ func New(cfg config.TouchConfig, dcl discovery.DiscoveryInterface) (Extension, e
 	}
 
 	return ext, nil
-}
-
-func (e *extension) resolveResourceVersions(dcl discovery.DiscoveryInterface) error {
-	for key, res := range e.cfg.Resources {
-		version, name, err := getServerPreferredVersion(dcl, res.Group, res.Kind)
-		if err != nil {
-			return err
-		}
-		if res.Version == "" {
-			res.Version = version
-		}
-		res.Name = name
-		e.cfg.Resources[key] = res
-	}
-	return nil
 }
 
 func (e *extension) generateExtensionFiles() error {
@@ -207,35 +194,4 @@ func (e *extension) consolidateResources() {
 		sort.Strings(sl)
 		e.resourcesByGroup[resource.Group] = sl
 	}
-}
-
-func getServerPreferredVersion(
-	discoveryClient discovery.DiscoveryInterface,
-	group, kind string,
-) (version, name string, err error) {
-	resources, err := discoveryClient.ServerPreferredResources()
-	if err != nil {
-		return "", "", fmt.Errorf("failed to get server preferred resources: %w", err)
-	}
-
-	for _, list := range resources {
-		if list == nil {
-			continue
-		}
-
-		gv, err := schema.ParseGroupVersion(list.GroupVersion)
-		if err != nil {
-			continue
-		}
-
-		if gv.Group == group {
-			for _, r := range list.APIResources {
-				if r.Kind == kind {
-					return gv.Version, r.Name, nil
-				}
-			}
-		}
-	}
-
-	return "", "", fmt.Errorf("no preferred version found for group %s and kind %s", group, kind)
 }

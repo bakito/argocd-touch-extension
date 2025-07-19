@@ -32,7 +32,7 @@ func runRoot(_ *cobra.Command, _ []string) error {
 				Group: "",
 				Kind:  "ConfigMap",
 			},
-			"pod": {
+			"pods": {
 				Group: "",
 				Kind:  "Pod",
 			},
