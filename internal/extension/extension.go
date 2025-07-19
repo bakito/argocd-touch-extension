@@ -4,10 +4,13 @@ import (
 	"archive/tar"
 	"bytes"
 	_ "embed"
+	"fmt"
 	"text/template"
 	"time"
 
 	"github.com/bakito/argocd-touch-extension/internal/config"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/discovery"
 )
 
 var (
@@ -19,7 +22,18 @@ var (
 	tplExtension string
 )
 
-func New(cfg config.TouchConfig) (Extension, error) {
+func New(cfg config.TouchConfig, dcl *discovery.DiscoveryClient) (Extension, error) {
+	for name, res := range cfg.Resources {
+		if res.Version == "" {
+			v, err := getServerPreferredVersion(dcl, res.Group, res.Kind)
+			if err != nil {
+				return nil, err
+			}
+			res.Version = v
+			cfg.Resources[name] = res
+		}
+	}
+
 	ext := &extension{cfg: cfg}
 
 	extJS, err := ext.render("extension-touch.js", tplExtension)
@@ -108,4 +122,32 @@ func (e *extension) createTar(data []byte) ([]byte, error) {
 
 	_ = tw.Close()
 	return buf.Bytes(), nil
+}
+
+func getServerPreferredVersion(discoveryClient *discovery.DiscoveryClient, group, kind string) (string, error) {
+	resources, err := discoveryClient.ServerPreferredResources()
+	if err != nil {
+		return "", fmt.Errorf("failed to get server preferred resources: %w", err)
+	}
+
+	for _, list := range resources {
+		if list == nil {
+			continue
+		}
+
+		gv, err := schema.ParseGroupVersion(list.GroupVersion)
+		if err != nil {
+			continue
+		}
+
+		if gv.Group == group {
+			for _, r := range list.APIResources {
+				if r.Kind == kind {
+					return gv.Version, nil
+				}
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no preferred version found for group %s and kind %s", group, kind)
 }
