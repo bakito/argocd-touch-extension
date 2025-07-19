@@ -20,21 +20,25 @@ var (
 	tplArgocdServerDeployment string
 	//go:embed extension-touch.js.tpl
 	tplExtension string
+	//go:embed extension-proxy-rbac.yaml.tpl
+	tplRBAC string
 )
 
 func New(cfg config.TouchConfig, dcl *discovery.DiscoveryClient) (Extension, error) {
-	for name, res := range cfg.Resources {
-		if res.Version == "" {
-			v, err := getServerPreferredVersion(dcl, res.Group, res.Kind)
-			if err != nil {
-				return nil, err
-			}
-			res.Version = v
-			cfg.Resources[name] = res
+	for key, res := range cfg.Resources {
+		v, name, err := getServerPreferredVersion(dcl, res.Group, res.Kind)
+		if err != nil {
+			return nil, err
 		}
+		if res.Version == "" {
+			res.Version = v
+		}
+		res.Name = name
+		cfg.Resources[key] = res
 	}
 
 	ext := &extension{cfg: cfg}
+	ext.consolidate()
 
 	extJS, err := ext.render("extension-touch.js", tplExtension)
 	if err != nil {
@@ -53,6 +57,11 @@ func New(cfg config.TouchConfig, dcl *discovery.DiscoveryClient) (Extension, err
 	if err != nil {
 		return nil, err
 	}
+	// FIXME consolidate by group for rbac
+	ext.rbac, err = ext.render("extension-proxy-rbac.yaml", tplRBAC)
+	if err != nil {
+		return nil, err
+	}
 
 	return ext, nil
 }
@@ -62,12 +71,19 @@ type Extension interface {
 	ExtensionTar() []byte
 	ArgoCDConfig() []byte
 	ArgoCDDeployment() []byte
+	ProxyRBAC() []byte
 }
 type extension struct {
 	cfg              config.TouchConfig
 	argocdConfig     []byte
 	argocdDeployment []byte
 	extensionTar     []byte
+	rbac             []byte
+	ResourcesByGroup map[string][]string
+}
+
+func (e *extension) ProxyRBAC() []byte {
+	return e.rbac
 }
 
 func (e *extension) ArgoCDDeployment() []byte {
@@ -124,10 +140,20 @@ func (e *extension) createTar(data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func getServerPreferredVersion(discoveryClient *discovery.DiscoveryClient, group, kind string) (string, error) {
+func (e *extension) consolidate() {
+	e.ResourcesByGroup = make(map[string][]string)
+	for _, resource := range e.cfg.Resources {
+		e.ResourcesByGroup[resource.Group] = append(e.ResourcesByGroup[resource.Group], resource.Name)
+	}
+}
+
+func getServerPreferredVersion(
+	discoveryClient *discovery.DiscoveryClient,
+	group, kind string,
+) (version, name string, err error) {
 	resources, err := discoveryClient.ServerPreferredResources()
 	if err != nil {
-		return "", fmt.Errorf("failed to get server preferred resources: %w", err)
+		return "", "", fmt.Errorf("failed to get server preferred resources: %w", err)
 	}
 
 	for _, list := range resources {
@@ -143,11 +169,11 @@ func getServerPreferredVersion(discoveryClient *discovery.DiscoveryClient, group
 		if gv.Group == group {
 			for _, r := range list.APIResources {
 				if r.Kind == kind {
-					return gv.Version, nil
+					return gv.Version, r.Name, nil
 				}
 			}
 		}
 	}
 
-	return "", fmt.Errorf("no preferred version found for group %s and kind %s", group, kind)
+	return "", "", fmt.Errorf("no preferred version found for group %s and kind %s", group, kind)
 }

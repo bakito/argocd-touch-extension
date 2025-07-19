@@ -7,20 +7,34 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func handleExtensionConfig(ext extension.Extension) gin.HandlerFunc {
+const (
+	contentTypeYAML = "application/yaml"
+	contentTypeTAR  = "application/x-tar"
+)
+
+// createHandler creates a gin.HandlerFunc that returns data with specified content type.
+func createHandler(contentType string, dataFn func() []byte) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Data(http.StatusOK, "application/yaml", ext.ArgoCDConfig())
+		c.Data(http.StatusOK, contentType, dataFn())
 	}
 }
 
-func handleExtensionDeployment(ext extension.Extension) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Data(http.StatusOK, "application/yaml", ext.ArgoCDDeployment())
-	}
+// ConfigHandler returns extension configuration.
+func configHandler(ext extension.Extension) gin.HandlerFunc {
+	return createHandler(contentTypeYAML, ext.ArgoCDConfig)
 }
 
-func handleExtensionTar(ext extension.Extension) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Data(http.StatusOK, "application/x-tar", ext.ExtensionTar())
-	}
+// DeploymentHandler returns extension deployment configuration.
+func deploymentHandler(ext extension.Extension) gin.HandlerFunc {
+	return createHandler(contentTypeYAML, ext.ArgoCDDeployment)
+}
+
+// TarHandler returns extension tar archive.
+func tarHandler(ext extension.Extension) gin.HandlerFunc {
+	return createHandler(contentTypeTAR, ext.ExtensionTar)
+}
+
+// RBACHandler returns extension RBAC configuration.
+func rbacHandler(ext extension.Extension) gin.HandlerFunc {
+	return createHandler(contentTypeYAML, ext.ProxyRBAC)
 }

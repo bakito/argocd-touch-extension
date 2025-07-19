@@ -31,9 +31,10 @@ func Run(client *dynamic.DynamicClient, ext extension.Extension) error {
 	router := gin.Default()
 
 	v1 := router.Group("/v1")
-	v1.GET("extension/tar", handleExtensionTar(ext))
-	v1.GET("extension/config", handleExtensionConfig(ext))
-	v1.GET("extension/deployment", handleExtensionDeployment(ext))
+	v1.GET("extension/tar", tarHandler(ext))
+	v1.GET("extension/config", configHandler(ext))
+	v1.GET("extension/deployment", deploymentHandler(ext))
+	v1.GET("extension/rbac", rbacHandler(ext))
 
 	v1Touch := router.Group("/v1/touch")
 	v1Touch.Use(validateArgocdHeaders())
