@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/bakito/argocd-touch-extension/internal/config"
+	"github.com/bakito/argocd-touch-extension/internal/extension"
 	"github.com/gin-gonic/gin"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,26 +26,25 @@ const (
 	headerArgocdProjName = "Argocd-Project-Name"
 )
 
-type server struct {
-	configs map[string]TouchConfig
-}
-
-func Run(client *dynamic.DynamicClient, configs map[string]TouchConfig) error {
+func Run(client *dynamic.DynamicClient, ext extension.Extension) error {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
-	srv := &server{configs: configs}
-	router.GET("extension", srv.handleExtensionTar)
 	v1 := router.Group("/v1")
-	v1.Use(validateArgocdHeaders())
+	v1.GET("extension/tar", handleExtensionTar(ext))
+	v1.GET("extension/config", handleExtensionConfig(ext))
+	v1.GET("extension/deployment", handleExtensionDeployment(ext))
 
-	for resource, config := range configs {
-		slog.With("resource", resource, "group", config.Group, "version", config.Version, "kind", config.Kind).
+	v1Touch := router.Group("/v1/touch")
+	v1Touch.Use(validateArgocdHeaders())
+
+	for name, res := range ext.Resources() {
+		slog.With("resource", name, "group", res.Group, "version", res.Version, "kind", res.Kind).
 			Info("Registering handler")
-		v1.PUT(resource+"/:namespace/:name", handleTouch(client, resource, config))
+		v1Touch.PUT(name+"/:namespace/:name", handleTouch(client, name, res))
 	}
 
-	return srv.start(router)
+	return start(router)
 }
 
 func validateArgocdHeaders() gin.HandlerFunc {
@@ -69,7 +70,7 @@ func validateHeader(c *gin.Context, name string) bool {
 	return false
 }
 
-func (s *server) start(router *gin.Engine) error {
+func start(router *gin.Engine) error {
 	slog.With("port", ":8080").Info("Starting server")
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -99,11 +100,11 @@ func (s *server) start(router *gin.Engine) error {
 	return nil
 }
 
-func handleTouch(client *dynamic.DynamicClient, resource string, config TouchConfig) gin.HandlerFunc {
+func handleTouch(client *dynamic.DynamicClient, resource string, res config.Resource) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		namespace := c.Param("namespace")
 		name := c.Param("name")
-		cl := client.Resource(schema.GroupVersionResource{Group: config.Group, Version: config.Version, Resource: resource}).
+		cl := client.Resource(schema.GroupVersionResource{Group: res.Group, Version: res.Version, Resource: resource}).
 			Namespace(namespace)
 
 		_, err := cl.Patch(
@@ -127,10 +128,4 @@ func handleTouch(client *dynamic.DynamicClient, resource string, config TouchCon
 
 		c.Status(http.StatusOK)
 	}
-}
-
-type TouchConfig struct {
-	Group   string `json:"group"`
-	Version string `json:"version"`
-	Kind    string `json:"kind"`
 }
