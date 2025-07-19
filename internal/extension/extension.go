@@ -14,6 +14,16 @@ import (
 	"k8s.io/client-go/discovery"
 )
 
+type templateConfig struct {
+	name    string
+	content string
+}
+
+const (
+	extensionJSPath = "resources/extension-touch.js"
+	fileMode        = 0o644
+)
+
 var (
 	//go:embed argocd-config.yaml.tpl
 	tplArgocdConfig string
@@ -23,48 +33,22 @@ var (
 	tplExtension string
 	//go:embed extension-proxy-rbac.yaml.tpl
 	tplRBAC string
+
+	templates = map[string]templateConfig{
+		"config":     {"argocd-config.yaml", tplArgocdConfig},
+		"deployment": {"argocd-server-deployment.yaml", tplArgocdServerDeployment},
+		"extension":  {"extension-touch.js", tplExtension},
+		"rbac":       {"extension-proxy-rbac.yaml", tplRBAC},
+	}
 )
 
-func New(cfg config.TouchConfig, dcl *discovery.DiscoveryClient) (Extension, error) {
-	for key, res := range cfg.Resources {
-		v, name, err := getServerPreferredVersion(dcl, res.Group, res.Kind)
-		if err != nil {
-			return nil, err
-		}
-		if res.Version == "" {
-			res.Version = v
-		}
-		res.Name = name
-		cfg.Resources[key] = res
-	}
+type Error struct {
+	Operation string
+	Err       error
+}
 
-	ext := &extension{cfg: cfg}
-	ext.consolidate()
-
-	extJS, err := ext.render("extension-touch.js", tplExtension)
-	if err != nil {
-		return nil, err
-	}
-	ext.extensionTar, err = ext.createTar(extJS)
-	if err != nil {
-		return nil, err
-	}
-
-	ext.argocdConfig, err = ext.render("argocd-config.yaml", tplArgocdConfig)
-	if err != nil {
-		return nil, err
-	}
-	ext.argocdDeployment, err = ext.render("argocd-server-deployment.yaml", tplArgocdServerDeployment)
-	if err != nil {
-		return nil, err
-	}
-	// FIXME consolidate by group for rbac
-	ext.rbac, err = ext.render("extension-proxy-rbac.yaml", tplRBAC)
-	if err != nil {
-		return nil, err
-	}
-
-	return ext, nil
+func (e *Error) Error() string {
+	return fmt.Sprintf("extension %s failed: %v", e.Operation, e.Err)
 }
 
 type Extension interface {
@@ -83,6 +67,88 @@ type extension struct {
 	resourcesByGroup map[string][]string
 }
 
+func New(cfg config.TouchConfig, dcl discovery.DiscoveryInterface) (Extension, error) {
+	ext := &extension{
+		cfg:              cfg,
+		resourcesByGroup: make(map[string][]string),
+	}
+
+	if err := ext.resolveResourceVersions(dcl); err != nil {
+		return nil, &Error{"version resolution", err}
+	}
+
+	ext.consolidateResources()
+
+	if err := ext.generateExtensionFiles(); err != nil {
+		return nil, err
+	}
+
+	return ext, nil
+}
+
+func (e *extension) resolveResourceVersions(dcl discovery.DiscoveryInterface) error {
+	for key, res := range e.cfg.Resources {
+		version, name, err := getServerPreferredVersion(dcl, res.Group, res.Kind)
+		if err != nil {
+			return err
+		}
+		if res.Version == "" {
+			res.Version = version
+		}
+		res.Name = name
+		e.cfg.Resources[key] = res
+	}
+	return nil
+}
+
+func (e *extension) generateExtensionFiles() error {
+	var err error
+
+	// Generate extension JS and create tar
+	extJS, err := e.renderTemplate(templates["extension"])
+	if err != nil {
+		return &Error{"render extension", err}
+	}
+
+	if e.extensionTar, err = e.createTar(extJS); err != nil {
+		return &Error{"create tar", err}
+	}
+
+	// Generate other template files
+	if e.argocdConfig, err = e.renderTemplate(templates["config"]); err != nil {
+		return &Error{"render config", err}
+	}
+
+	if e.argocdDeployment, err = e.renderTemplate(templates["deployment"]); err != nil {
+		return &Error{"render deployment", err}
+	}
+
+	if e.rbac, err = e.renderTemplate(templates["rbac"]); err != nil {
+		return &Error{"render rbac", err}
+	}
+
+	return nil
+}
+
+func (e *extension) renderTemplate(tpl templateConfig) ([]byte, error) {
+	t, err := template.New(tpl.name).Parse(tpl.content)
+	if err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	data := map[string]any{
+		"Resources":        e.cfg.Resources,
+		"ServiceAddress":   e.cfg.ServiceAddress,
+		"ResourcesByGroup": e.resourcesByGroup,
+	}
+
+	if err := t.Execute(&buf, data); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
 func (e *extension) ProxyRBAC() []byte {
 	return e.rbac
 }
@@ -93,24 +159,6 @@ func (e *extension) ArgoCDDeployment() []byte {
 
 func (e *extension) ArgoCDConfig() []byte {
 	return e.argocdConfig
-}
-
-func (e *extension) render(name, templ string) ([]byte, error) {
-	t, err := template.New(name).Parse(templ)
-	if err != nil {
-		return nil, err
-	}
-
-	var tpl bytes.Buffer
-
-	if err := t.Execute(&tpl, map[string]any{
-		"Resources":        e.cfg.Resources,
-		"ServiceAddress":   e.cfg.ServiceAddress,
-		"ResourcesByGroup": e.resourcesByGroup,
-	}); err != nil {
-		return nil, err
-	}
-	return tpl.Bytes(), nil
 }
 
 func (e *extension) Resources() map[string]config.Resource {
@@ -127,8 +175,8 @@ func (e *extension) createTar(data []byte) ([]byte, error) {
 	defer tw.Close()
 
 	hdr := &tar.Header{
-		Name:    "resources/extension-touch.js",
-		Mode:    0o644,
+		Name:    extensionJSPath,
+		Mode:    fileMode,
 		Size:    int64(len(data)),
 		ModTime: time.Now(),
 	}
@@ -145,7 +193,7 @@ func (e *extension) createTar(data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (e *extension) consolidate() {
+func (e *extension) consolidateResources() {
 	e.resourcesByGroup = make(map[string][]string)
 	for _, resource := range e.cfg.Resources {
 		sl := e.resourcesByGroup[resource.Group]
@@ -156,7 +204,7 @@ func (e *extension) consolidate() {
 }
 
 func getServerPreferredVersion(
-	discoveryClient *discovery.DiscoveryClient,
+	discoveryClient discovery.DiscoveryInterface,
 	group, kind string,
 ) (version, name string, err error) {
 	resources, err := discoveryClient.ServerPreferredResources()

@@ -26,9 +26,9 @@ const (
 	headerArgocdProjName = "Argocd-Project-Name"
 )
 
-func Run(client *dynamic.DynamicClient, ext extension.Extension) error {
+func Run(client dynamic.Interface, ext extension.Extension) error {
 	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
+	router := gin.New()
 
 	v1 := router.Group("/v1")
 	v1.GET("extension/tar", tarHandler(ext))
@@ -101,7 +101,7 @@ func start(router *gin.Engine) error {
 	return nil
 }
 
-func handleTouch(client *dynamic.DynamicClient, resource string, res config.Resource) gin.HandlerFunc {
+func handleTouch(client dynamic.Interface, resource string, res config.Resource) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		namespace := c.Param("namespace")
 		name := c.Param("name")
