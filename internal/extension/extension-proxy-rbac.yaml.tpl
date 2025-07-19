@@ -4,12 +4,14 @@ metadata:
   name: argocd-touch-proxy
   namespace: argo-cd
 rules:
-  {{- range $_, $res := .Resources }}
+  {{- range $group, $resources := .ResourcesByGroup }}
   - verbs:
       - get
       - patch
     apiGroups:
-      - '{{$res.Group}}'
+      - '{{ $group }}'
     resources:
-      - '{{$res.Name}}'
+    {{- range $_, $res := $resources }}
+      - {{$res}}
+    {{- end }}
   {{- end }}

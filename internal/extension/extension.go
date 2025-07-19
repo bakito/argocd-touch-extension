@@ -5,6 +5,7 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
+	"sort"
 	"text/template"
 	"time"
 
@@ -79,7 +80,7 @@ type extension struct {
 	argocdDeployment []byte
 	extensionTar     []byte
 	rbac             []byte
-	ResourcesByGroup map[string][]string
+	resourcesByGroup map[string][]string
 }
 
 func (e *extension) ProxyRBAC() []byte {
@@ -102,7 +103,11 @@ func (e *extension) render(name, templ string) ([]byte, error) {
 
 	var tpl bytes.Buffer
 
-	if err := t.Execute(&tpl, e.cfg); err != nil {
+	if err := t.Execute(&tpl, map[string]any{
+		"Resources":        e.cfg.Resources,
+		"ServiceAddress":   e.cfg.ServiceAddress,
+		"ResourcesByGroup": e.resourcesByGroup,
+	}); err != nil {
 		return nil, err
 	}
 	return tpl.Bytes(), nil
@@ -141,9 +146,12 @@ func (e *extension) createTar(data []byte) ([]byte, error) {
 }
 
 func (e *extension) consolidate() {
-	e.ResourcesByGroup = make(map[string][]string)
+	e.resourcesByGroup = make(map[string][]string)
 	for _, resource := range e.cfg.Resources {
-		e.ResourcesByGroup[resource.Group] = append(e.ResourcesByGroup[resource.Group], resource.Name)
+		sl := e.resourcesByGroup[resource.Group]
+		sl = append(sl, resource.Name)
+		sort.Strings(sl)
+		e.resourcesByGroup[resource.Group] = sl
 	}
 }
 
