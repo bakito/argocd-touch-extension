@@ -54,6 +54,7 @@ func (e *Error) Error() string {
 type Extension interface {
 	Resources() map[string]config.Resource
 	ExtensionTar() []byte
+	ExtensionJS() []byte
 	ArgoCDConfig() []byte
 	ArgoCDDeployment() []byte
 	ProxyRBAC() []byte
@@ -62,6 +63,7 @@ type extension struct {
 	cfg              config.TouchConfig
 	argocdConfig     []byte
 	argocdDeployment []byte
+	extensionJS      []byte
 	extensionTar     []byte
 	rbac             []byte
 	resourcesByGroup map[string][]string
@@ -105,12 +107,12 @@ func (e *extension) generateExtensionFiles() error {
 	var err error
 
 	// Generate extension JS and create tar
-	extJS, err := e.renderTemplate(templates["extension"])
+	e.extensionJS, err = e.renderTemplate(templates["extension"])
 	if err != nil {
 		return &Error{"render extension", err}
 	}
 
-	if e.extensionTar, err = e.createTar(extJS); err != nil {
+	if e.extensionTar, err = e.createTar(); err != nil {
 		return &Error{"create tar", err}
 	}
 
@@ -165,11 +167,15 @@ func (e *extension) Resources() map[string]config.Resource {
 	return e.cfg.Resources
 }
 
+func (e *extension) ExtensionJS() []byte {
+	return e.extensionJS
+}
+
 func (e *extension) ExtensionTar() []byte {
 	return e.extensionTar
 }
 
-func (e *extension) createTar(data []byte) ([]byte, error) {
+func (e *extension) createTar() ([]byte, error) {
 	var buf bytes.Buffer
 	tw := tar.NewWriter(&buf)
 	defer tw.Close()
@@ -177,7 +183,7 @@ func (e *extension) createTar(data []byte) ([]byte, error) {
 	hdr := &tar.Header{
 		Name:    extensionJSPath,
 		Mode:    fileMode,
-		Size:    int64(len(data)),
+		Size:    int64(len(e.extensionJS)),
 		ModTime: time.Now(),
 	}
 
@@ -185,7 +191,7 @@ func (e *extension) createTar(data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	if _, err := tw.Write(data); err != nil {
+	if _, err := tw.Write(e.extensionJS); err != nil {
 		return nil, err
 	}
 

@@ -32,3 +32,7 @@ func (a *Application) Run() error {
 
 	return server.Run(a.clients.Dynamic, ext)
 }
+
+func (a *Application) Extension() (extension.Extension, error) {
+	return extension.New(a.config, a.clients.Discovery)
+}
