@@ -59,6 +59,7 @@ type Extension interface {
 	ArgoCDDeployment() []byte
 	ProxyRBAC() []byte
 }
+
 type extension struct {
 	cfg              config.TouchConfig
 	argocdConfig     []byte
