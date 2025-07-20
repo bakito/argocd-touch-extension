@@ -1,11 +1,19 @@
 ((window) => {
     const component2 = (context, extensionName) => {
+        const app = context.application;
+        const resource = context.resource;
+        const appNamespace = app?.metadata?.namespace || '';
+        const appName = app?.metadata?.name || '';
+        const project = app?.spec?.project || '';
+
         const handleClick = async () => {
             try {
                 const response = await fetch(`/extensions/touch-${extensionName}`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'cache-control': 'no-cache',
+                        'Argocd-Application-Name': `${appNamespace}:${appName}`,
+                        'Argocd-Project-Name': project,
                     }
                 });
                 if (!response.ok) {
