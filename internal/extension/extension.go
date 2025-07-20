@@ -29,8 +29,8 @@ const (
 )
 
 var (
-	//go:embed argocd-config.yaml.tpl
-	tplArgocdConfig string
+	//go:embed argocd-helm-values.yaml.tpl
+	tplArgocdHelmConfig string
 	//go:embed argocd-server-deployment.yaml.tpl
 	tplArgocdServerDeployment string
 	//go:embed extension-touch.js.tpl
@@ -39,7 +39,7 @@ var (
 	tplRBAC string
 
 	templates = map[string]templateConfig{
-		"config":     {"argocd-config.yaml", tplArgocdConfig},
+		"config":     {"argocd-helm-values.yaml", tplArgocdHelmConfig},
 		"deployment": {"argocd-server-deployment.yaml", tplArgocdServerDeployment},
 		"extension":  {"extension-touch.js", tplExtension},
 		"rbac":       {"extension-proxy-rbac.yaml", tplRBAC},
