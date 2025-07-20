@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/bakito/argocd-touch-extension/internal/version"
 	"log/slog"
 	"os"
 
@@ -11,9 +12,10 @@ import (
 
 var (
 	rootCmd = &cobra.Command{
-		Use:   "argocd-touch-extension",
-		Short: "ArgoCD Touch Extension",
-		RunE:  runRoot,
+		Use:     "argocd-touch-extension",
+		Short:   "ArgoCD Touch Extension",
+		RunE:    runRoot,
+		Version: version.Version + " (" + version.Build + ")",
 	}
 	configFile        string
 	serviceAddress    string
