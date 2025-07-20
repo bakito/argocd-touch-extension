@@ -5,6 +5,7 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
+	"os"
 	"sort"
 	"text/template"
 	"time"
@@ -69,7 +70,7 @@ type extension struct {
 	resourcesByGroup map[string][]string
 }
 
-func New(cfg config.TouchConfig, cl k8s.Client) (Extension, error) {
+func New(cfg config.TouchConfig, cl k8s.Client, uiExtensionTemplate string) (Extension, error) {
 	resources, err := cl.SetNameAndVersion(cfg.Resources)
 	if err != nil {
 		return nil, &Error{"version resolution", err}
@@ -83,18 +84,31 @@ func New(cfg config.TouchConfig, cl k8s.Client) (Extension, error) {
 
 	ext.consolidateResources()
 
-	if err := ext.generateExtensionFiles(); err != nil {
+	if err := ext.generateExtensionFiles(uiExtensionTemplate); err != nil {
 		return nil, err
 	}
 
 	return ext, nil
 }
 
-func (e *extension) generateExtensionFiles() error {
+func (e *extension) generateExtensionFiles(uiExtensionTemplate string) error {
 	var err error
 
 	// Generate extension JS and create tar
-	e.extensionJS, err = e.renderTemplate(templates["extension"])
+
+	uiTpl := templates["extension"]
+	if uiExtensionTemplate != "" {
+		data, err := os.ReadFile(uiExtensionTemplate)
+		if err != nil {
+			return fmt.Errorf("failed to read config file: %w", err)
+		}
+		uiTpl = templateConfig{
+			name:    uiExtensionTemplate,
+			content: string(data),
+		}
+	}
+
+	e.extensionJS, err = e.renderTemplate(uiTpl)
 	if err != nil {
 		return &Error{"render extension", err}
 	}

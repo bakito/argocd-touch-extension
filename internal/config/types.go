@@ -1,8 +1,9 @@
 package config
 
 type TouchConfig struct {
-	ServiceAddress string              `json:"serviceAddress"`
-	Resources      map[string]Resource `json:"resources"`
+	ServiceAddress    string
+	ExtensionTemplate string
+	Resources         map[string]Resource
 }
 
 type Resource struct {

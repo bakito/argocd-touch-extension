@@ -15,8 +15,9 @@ var (
 		Short: "ArgoCD Touch Extension",
 		RunE:  runRoot,
 	}
-	configFile     string
-	serviceAddress string
+	configFile        string
+	serviceAddress    string
+	extensionTemplate string
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -33,6 +34,7 @@ func init() {
 }
 
 func initConfigFlags(cmd *cobra.Command) {
+	cmd.Flags().StringVar(&extensionTemplate, "extension-template", "", "Allows overwriting the UI extension template.")
 	cmd.Flags().
 		StringVar(&serviceAddress, "service-address", "http://argocd-touch-extension.svc.cluster.local:8080", "Service address")
 	cmd.Flags().StringVarP(&configFile, "config", "c", "", "Location of the config file")
@@ -59,5 +61,6 @@ func loadConfig() (config.TouchConfig, error) {
 		return config.TouchConfig{}, err
 	}
 	cfg.ServiceAddress = serviceAddress
+	cfg.ExtensionTemplate = extensionTemplate
 	return cfg, nil
 }

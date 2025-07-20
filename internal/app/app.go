@@ -34,5 +34,5 @@ func (a *Application) Run() error {
 }
 
 func (a *Application) Extension() (extension.Extension, error) {
-	return extension.New(a.config, a.client)
+	return extension.New(a.config, a.client, a.config.ExtensionTemplate)
 }
