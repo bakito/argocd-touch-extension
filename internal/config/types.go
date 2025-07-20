@@ -6,8 +6,14 @@ type TouchConfig struct {
 }
 
 type Resource struct {
-	Group   string `json:"group"`
-	Version string `json:"version"`
-	Kind    string `json:"kind"`
-	Name    string `json:"-"`
+	Group       string      `json:"group"                 yaml:"group"`
+	Version     string      `json:"version"               yaml:"version"`
+	Kind        string      `json:"kind"                  yaml:"kind"`
+	Name        string      `json:"name"                  yaml:"name"`
+	UIExtension UIExtension `json:"uiExtension,omitempty" yaml:"uiExtension"`
+}
+
+type UIExtension struct {
+	Name string `json:"name,omitempty" yaml:"name"`
+	Icon string `json:"icon,omitempty" yaml:"icon"`
 }

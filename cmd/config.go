@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/bakito/argocd-touch-extension/internal/app"
-	"github.com/bakito/argocd-touch-extension/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -21,24 +20,15 @@ var (
 
 func init() {
 	rootCmd.AddCommand(configCmd)
-
 	// Add flags
+	initConfigFlags(configCmd)
 	configCmd.Flags().StringVarP(&outputType, "type", "t", "all", "Output type (all, config, deployment, rbac, extension)")
 }
 
 func runConfig(cmd *cobra.Command, _ []string) error {
-	cfg := config.TouchConfig{
-		ServiceAddress: "http://argocd-touch-extension.svc.cluster.local:8080",
-		Resources: map[string]config.Resource{
-			"configmaps": {
-				Group: "",
-				Kind:  "ConfigMap",
-			},
-			"pod": {
-				Group: "",
-				Kind:  "Pod",
-			},
-		},
+	cfg, err := loadConfig()
+	if err != nil {
+		return err
 	}
 
 	application, err := app.New(cfg)

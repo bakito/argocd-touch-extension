@@ -46,6 +46,13 @@ func NewClient() (Client, error) {
 }
 
 func (cl *client) SetNameAndVersion(resMap map[string]config.Resource) (map[string]config.Resource, error) {
+	needsUpdate := false
+	for _, res := range resMap {
+		needsUpdate = needsUpdate || res.Version == "" || res.Name == ""
+	}
+	if !needsUpdate {
+		return resMap, nil
+	}
 	resources, err := cl.discovery.ServerPreferredNamespacedResources()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get server preferred resources: %w", err)

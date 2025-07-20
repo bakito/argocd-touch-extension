@@ -9,11 +9,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "argocd-touch-extension",
-	Short: "ArgoCD Touch Extension",
-	RunE:  runRoot,
-}
+var (
+	rootCmd = &cobra.Command{
+		Use:   "argocd-touch-extension",
+		Short: "ArgoCD Touch Extension",
+		RunE:  runRoot,
+	}
+	configFile     string
+	serviceAddress string
+)
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -24,19 +28,21 @@ func Execute() {
 	}
 }
 
+func init() {
+	initConfigFlags(rootCmd)
+}
+
+func initConfigFlags(cmd *cobra.Command) {
+	cmd.Flags().
+		StringVar(&serviceAddress, "service-address", "http://argocd-touch-extension.svc.cluster.local:8080", "Service address")
+	cmd.Flags().StringVarP(&configFile, "config", "c", "", "Location of the config file")
+	_ = cmd.MarkFlagRequired("config")
+}
+
 func runRoot(_ *cobra.Command, _ []string) error {
-	cfg := config.TouchConfig{
-		ServiceAddress: "http://argocd-touch-extension.svc.cluster.local:8080",
-		Resources: map[string]config.Resource{
-			"configmaps": {
-				Group: "",
-				Kind:  "ConfigMap",
-			},
-			"pods": {
-				Group: "",
-				Kind:  "Pod",
-			},
-		},
+	cfg, err := loadConfig()
+	if err != nil {
+		return err
 	}
 
 	application, err := app.New(cfg)
@@ -45,4 +51,13 @@ func runRoot(_ *cobra.Command, _ []string) error {
 	}
 
 	return application.Run()
+}
+
+func loadConfig() (config.TouchConfig, error) {
+	cfg, err := config.Load(configFile)
+	if err != nil {
+		return config.TouchConfig{}, err
+	}
+	cfg.ServiceAddress = serviceAddress
+	return cfg, nil
 }
