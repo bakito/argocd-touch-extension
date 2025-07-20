@@ -29,7 +29,8 @@ func Run(client k8s.Client, ext extension.Extension) error {
 	router := gin.New()
 
 	v1 := router.Group("/v1")
-	v1.GET("extension/tar", tarHandler(ext))
+	v1.GET("extension/"+extensionFileName, tarHandler(ext))
+	v1.GET("extension/"+extensionChecksum, tarChecksumHandler(ext))
 	v1.GET("extension/config", configHandler(ext))
 	v1.GET("extension/deployment", deploymentHandler(ext))
 	v1.GET("extension/rbac", rbacHandler(ext))

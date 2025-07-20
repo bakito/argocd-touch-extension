@@ -3,7 +3,10 @@ package extension
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
+	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"sort"
@@ -54,7 +57,7 @@ func (e *Error) Error() string {
 
 type Extension interface {
 	Resources() map[string]config.Resource
-	ExtensionTar() []byte
+	ExtensionTarGz() ([]byte, string)
 	ExtensionJS() []byte
 	ArgoCDConfig() []byte
 	ArgoCDDeployment() []byte
@@ -62,13 +65,14 @@ type Extension interface {
 }
 
 type extension struct {
-	cfg              config.TouchConfig
-	argocdConfig     []byte
-	argocdDeployment []byte
-	extensionJS      []byte
-	extensionTar     []byte
-	rbac             []byte
-	resourcesByGroup map[string][]string
+	cfg                  config.TouchConfig
+	argocdConfig         []byte
+	argocdDeployment     []byte
+	extensionJS          []byte
+	extensionTar         []byte
+	extensionTarChecksum string
+	rbac                 []byte
+	resourcesByGroup     map[string][]string
 }
 
 func New(cfg config.TouchConfig, cl k8s.Client, uiExtensionTemplate string) (Extension, error) {
@@ -114,7 +118,7 @@ func (e *extension) generateExtensionFiles(uiExtensionTemplate string) error {
 		return &Error{"render extension", err}
 	}
 
-	if e.extensionTar, err = e.createTar(); err != nil {
+	if e.extensionTar, e.extensionTarChecksum, err = e.createTar(); err != nil {
 		return &Error{"create tar", err}
 	}
 
@@ -173,14 +177,14 @@ func (e *extension) ExtensionJS() []byte {
 	return e.extensionJS
 }
 
-func (e *extension) ExtensionTar() []byte {
-	return e.extensionTar
+func (e *extension) ExtensionTarGz() ([]byte, string) {
+	return e.extensionTar, e.extensionTarChecksum
 }
 
-func (e *extension) createTar() ([]byte, error) {
+func (e *extension) createTar() (archive []byte, checksum string, err error) {
 	var buf bytes.Buffer
-	tw := tar.NewWriter(&buf)
-	defer tw.Close()
+	gw := gzip.NewWriter(&buf)
+	tw := tar.NewWriter(gw)
 
 	hdr := &tar.Header{
 		Name:    extensionJSPath,
@@ -190,15 +194,34 @@ func (e *extension) createTar() ([]byte, error) {
 	}
 
 	if err := tw.WriteHeader(hdr); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	if _, err := tw.Write(e.extensionJS); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	_ = tw.Close()
-	return buf.Bytes(), nil
+	if err := tw.Close(); err != nil {
+		return nil, "", err
+	}
+	if err := gw.Close(); err != nil {
+		return nil, "", err
+	}
+
+	archive = buf.Bytes()
+	checksum, err = calculateSHA256(archive)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to calculate checksum: %w", err)
+	}
+	return archive, checksum, nil
+}
+
+func calculateSHA256(data []byte) (string, error) {
+	h := sha256.New()
+	if _, err := h.Write(data); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func (e *extension) consolidateResources() {

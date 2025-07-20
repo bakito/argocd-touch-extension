@@ -6,3 +6,5 @@ https://argo-cd.readthedocs.io/en/stable/developer-guide/extensions/proxy-extens
 https://github.com/argoproj-labs/argocd-extension-installer
 
 https://external-secrets.io/latest/introduction/faq/#can-i-manually-trigger-a-secret-refresh
+
+https://github.com/argoproj-labs/argocd-ephemeral-access
