@@ -12,6 +12,7 @@ import (
 
 	"github.com/bakito/argocd-touch-extension/internal/config"
 	"github.com/bakito/argocd-touch-extension/internal/k8s"
+	sprig "github.com/go-task/slim-sprig/v3"
 )
 
 type templateConfig struct {
@@ -134,7 +135,7 @@ func (e *extension) generateExtensionFiles(uiExtensionTemplate string) error {
 }
 
 func (e *extension) renderTemplate(tpl templateConfig) ([]byte, error) {
-	t, err := template.New(tpl.name).Parse(tpl.content)
+	t, err := template.New(tpl.name).Funcs(sprig.TxtFuncMap()).Parse(tpl.content)
 	if err != nil {
 		return nil, err
 	}

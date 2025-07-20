@@ -4,3 +4,6 @@ configmaps:
 pods:
   group: ""
   kind: Pod
+  uiExtension:
+    tabTitle: Touch Pod
+    icon: fa-box

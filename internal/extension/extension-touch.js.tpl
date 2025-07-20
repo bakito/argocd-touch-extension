@@ -7,7 +7,9 @@
         component,
         "{{ $res.Group }}",
         "{{ $res.Kind }}",
-        "Nice extension"
+        "{{ if $res.UIExtension }}{{ $res.UIExtension.TabTitle }}{{ else }}Touch{{ end }}"
+        {{- if and $res.UIExtension $res.UIExtension.Icon }},
+        { icon: "{{$res.UIExtension.Icon}}" }{{ end }}
     );
     {{- end }}
 })(window);
