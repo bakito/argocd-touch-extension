@@ -1,5 +1,5 @@
 ((window) => {
-const component = ({ extensionName }) => {
+    const component = ({ extensionName }) => {
         const handleClick = async () => {
             try {
                 const response = await fetch(`/extensions/touch-${extensionName}`, {
@@ -26,9 +26,14 @@ const component = ({ extensionName }) => {
             )
         );
     };
+    {{- range $name, $_ := .Resources }}
+    const component_{{$name}} = () => {
+        return React.createElement("div", {}, "Hello World {{$name}}");
+    };
+    {{- end }}
     {{- range $name, $res := .Resources }}
     window.extensionsAPI.registerResourceExtension(
-        component, { extensionName: "{{ $name }}" },
+        component_{{$name}},
         "{{ $res.Group }}",
         "{{ $res.Kind }}",
         "{{ if $res.UIExtension }}{{ $res.UIExtension.TabTitle }}{{ else }}Touch{{ end }}"
