@@ -18,13 +18,13 @@ configs:
   cm:
     "extension.config.touch-configmaps": |-
       services:
-        - url: http://argo-cd-touch-extension:8080/v1/touch/configmaps
+        - url: http://argo-cd-touch-extension:8080
     "extension.config.touch-pods": |-
       services:
-        - url: http://argo-cd-touch-extension:8080/v1/touch/pods
+        - url: http://argo-cd-touch-extension:8080
     "extension.config.touch-sa": |-
       services:
-        - url: http://argo-cd-touch-extension:8080/v1/touch/sa
+        - url: http://argo-cd-touch-extension:8080
 
 server:
   initContainers:

@@ -20,6 +20,7 @@ var (
 	configFile        string
 	serviceAddress    string
 	extensionTemplate string
+	debug             bool
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -40,6 +41,7 @@ func initConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().
 		StringVar(&serviceAddress, "service-address", "http://argo-cd-touch-extension.svc.cluster.local:8080", "Service address")
 	cmd.Flags().StringVarP(&configFile, "config", "c", "", "Location of the config file")
+	cmd.Flags().BoolVar(&debug, "debug", false, "Enable debug logging")
 	_ = cmd.MarkFlagRequired("config")
 }
 
@@ -54,7 +56,7 @@ func runRoot(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	return application.Run()
+	return application.Run(debug)
 }
 
 func loadConfig() (config.TouchConfig, error) {

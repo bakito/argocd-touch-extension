@@ -24,13 +24,13 @@ func New(cfg config.TouchConfig) (*Application, error) {
 	}, nil
 }
 
-func (a *Application) Run() error {
+func (a *Application) Run(debug bool) error {
 	ext, err := a.Extension()
 	if err != nil {
 		return err
 	}
 
-	return server.Run(a.client, ext)
+	return server.Run(a.client, ext, debug)
 }
 
 func (a *Application) Extension() (extension.Extension, error) {

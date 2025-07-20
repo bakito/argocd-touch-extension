@@ -15,6 +15,7 @@ import (
 	"github.com/bakito/argocd-touch-extension/internal/extension"
 	"github.com/bakito/argocd-touch-extension/internal/k8s"
 	"github.com/gin-gonic/gin"
+	sloggin "github.com/samber/slog-gin"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -24,10 +25,14 @@ const (
 	headerArgocdProjName = "Argocd-Project-Name"
 )
 
-func Run(client k8s.Client, ext extension.Extension) error {
+func Run(client k8s.Client, ext extension.Extension, debug bool) error {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-	router = gin.Default()
+
+	if debug {
+		router.Use(sloggin.New(slog.Default()))
+	}
+	router.Use(gin.Recovery())
 
 	v1 := router.Group("/v1")
 	v1.GET("extension/"+extensionFileName, tarHandler(ext))
@@ -50,6 +55,7 @@ func Run(client k8s.Client, ext extension.Extension) error {
 
 func validateArgocdHeaders() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		slog.Info("headers", "H", fmt.Sprintf("%v", c.Request.Header))
 		if validateHeader(c, headerArgocdAppName) {
 			return
 		}
@@ -107,6 +113,7 @@ func handleTouch(cl k8s.Client, res config.Resource) gin.HandlerFunc {
 		name := c.Param("name")
 
 		if err := cl.PatchAnnotation(c, res, namespace, name, "argocd.bakito.ch/touch", metav1.Now().Format(time.RFC3339)); err != nil {
+			slog.Error("Failed to patch annotation", "error", err, "resource", res.Name, "namespace", namespace, "name", name)
 			var se *kerr.StatusError
 			if errors.As(err, &se) {
 				c.JSON(int(se.Status().Code), err)

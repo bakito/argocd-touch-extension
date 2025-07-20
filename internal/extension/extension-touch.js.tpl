@@ -1,14 +1,17 @@
 ((window) => {
     const component2 = (context, extensionName) => {
         const app = context.application;
-        const resource = context.resource;
         const appNamespace = app?.metadata?.namespace || '';
         const appName = app?.metadata?.name || '';
         const project = app?.spec?.project || '';
+        const resource = context.resource;
+        const resourceNamespace = resource?.metadata?.namespace || '';
+        const resourceName = resource?.metadata?.name || '';
+
 
         const handleClick = async () => {
             try {
-                const response = await fetch(`/extensions/touch-${extensionName}`, {
+                const response = await fetch(`/extensions/touch-${extensionName}/v1/touch/${extensionName}/${resourceNamespace}/${resourceName}`, {
                     method: 'PUT',
                     headers: {
                         'cache-control': 'no-cache',
