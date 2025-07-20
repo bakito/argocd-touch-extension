@@ -5,12 +5,15 @@ include ./.toolbox.mk
 lint: tb.golangci-lint
 	$(TB_GOLANGCI_LINT) run --fix
 
+lint-ci: tb.golangci-lint
+	$(TB_GOLANGCI_LINT) run
+
 # Run go mod tidy
 tidy:
 	go mod tidy
 
 # Run tests
-test: lint
+test: lint-ci
 	go test -v ./...
 
 release: tb.semver tb.goreleaser
