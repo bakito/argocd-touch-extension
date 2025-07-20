@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"github.com/bakito/argocd-touch-extension/internal/version"
 	"log/slog"
 	"os"
 
 	"github.com/bakito/argocd-touch-extension/internal/app"
 	"github.com/bakito/argocd-touch-extension/internal/config"
+	"github.com/bakito/argocd-touch-extension/internal/version"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ func init() {
 func initConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&extensionTemplate, "extension-template", "", "Allows overwriting the UI extension template.")
 	cmd.Flags().
-		StringVar(&serviceAddress, "service-address", "http://argocd-touch-extension.svc.cluster.local:8080", "Service address")
+		StringVar(&serviceAddress, "service-address", "http://argo-cd-touch-extension.svc.cluster.local:8080", "Service address")
 	cmd.Flags().StringVarP(&configFile, "config", "c", "", "Location of the config file")
 	_ = cmd.MarkFlagRequired("config")
 }

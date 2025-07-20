@@ -1,0 +1,28 @@
+dex:
+  enabled: false
+
+configs:
+  params:
+   "server.disable.auth": true
+server:
+  initContainers:
+    - name: extension-touch
+      image: quay.io/argoprojlabs/argocd-extension-installer:v0.0.5@sha256:27e72f047298188e2de1a73a1901013c274c4760c92f82e6e46cd5fbd0957c6b
+      env:
+        - name: EXTENSION_URL
+          value: http://argo-cd-touch-extension:8080/v1/extension/extension.tar.gz
+        - name: EXTENSION_CHECKSUM_URL
+          value: http://argo-cd-touch-extension:8080/v1/extension/extension_checksum.txt
+      volumeMounts:
+        - name: extensions
+          mountPath: /tmp/extensions/resources/
+      securityContext:
+        runAsUser: 1000
+        allowPrivilegeEscalation: false
+
+  volumeMounts:
+    - name: extensions
+      mountPath: /tmp/extensions/touch/
+  volumes:
+    - name: extensions
+      emptyDir: {}

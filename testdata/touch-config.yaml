@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: touch-config
+  namespace: argo-cd
+data:
+  config.yaml: |
+    configmaps:
+      group: ""
+      kind: ConfigMap
+    pods:
+      group: ""
+      kind: Pod
+      uiExtension:
+        tabTitle: Touch Pod
+        icon: fa-box
+    sa:
+      group: ""
+      kind: ServiceAccount
+      uiExtension:
+        tabTitle: Touch SA
+        icon: fa-box

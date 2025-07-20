@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-cd-touch-extension
+  namespace: argo-cd
+automountServiceAccountToken: true
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argo-cd-touch-extension
+  namespace: argo-cd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: argo-cd
+      app.kubernetes.io/name: argo-cd-touch-extension
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: argo-cd-touch-extension
+        app.kubernetes.io/instance: argo-cd
+        app.kubernetes.io/name: argo-cd-touch-extension
+    spec:
+      volumes:
+        - name: touch-config
+          configMap:
+            name: touch-config
+            defaultMode: 420
+      containers:
+        - name: extension-touch
+          image: localhost:5001/argocd-touch-extension
+          args:
+            - '--config'
+            - /tmp/touch/config.yaml
+            - '--service-address'
+            - 'argo-cd-touch-extension.svc'
+          resources: {}
+          volumeMounts:
+            - name: touch-config
+              mountPath: /tmp/touch/
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+      serviceAccountName: argo-cd-touch-extension
+  strategy:
+    type: RollingUpdate
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: argo-cd-touch-extension
+  namespace: argo-cd
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/instance: argo-cd
+    app.kubernetes.io/name: argo-cd-touch-extension
