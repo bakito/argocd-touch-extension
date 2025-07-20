@@ -16,15 +16,21 @@ https://github.com/opsmx-cnoe/argocd-extensions/blob/main/resources/extension-to
 ```bash
 
 # install registry
+
 docker start kind-registry || docker run -d --restart=always -p "127.0.0.1:5001:5000" --name kind-registry registry:3
+
+docker build -t localhost:5001/argocd-touch-extension .
+docker push localhost:5001/argocd-touch-extension
 
 kind create cluster --config testdata/kind-config.yaml 
 
 docker network connect kind kind-registry || true
-helm upgrade --install argo-cd -n argo-cd --create-namespace oci://ghcr.io/argoproj/argo-helm/argo-cd -f testdata/argo-cd-values.yaml 
+kubectl create ns argo-cd
 
-kubectl apply -f testdata/touch-config.yaml
- 
-docker build -t localhost:5001/argocd-touch-extension .
-docker push localhost:5001/argocd-touch-extension
+kubectl apply -f testdata/touch-config.yaml -f testdata/touch-deployment.yaml
+
+helm upgrade --install argo-cd -n argo-cd oci://ghcr.io/argoproj/argo-helm/argo-cd -f testdata/argo-cd-values.yaml 
+
+kubectl apply -f testdata/app.yaml
+
 ```

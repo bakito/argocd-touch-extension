@@ -29,19 +29,34 @@
     const component = ( extensionName ) => {
         return React.createElement("div", {}, `Hello World ${extensionName}`);
     };
-    {{- range $name, $_ := .Resources }}
-    const component_{{$name}} = (context) => {
-        return component2(context, "{{$name}}");
+    const component_configmaps = (context) => {
+        return component2(context, "configmaps");
     };
-    {{- end }}
-    {{- range $name, $res := .Resources }}
+    const component_pods = (context) => {
+        return component2(context, "pods");
+    };
+    const component_sa = (context) => {
+        return component2(context, "sa");
+    };
     window.extensionsAPI.registerResourceExtension(
-        component_{{$name}},
-        "{{ $res.Group }}",
-        "{{ $res.Kind }}",
-        "{{ if $res.UIExtension }}{{ $res.UIExtension.TabTitle }}{{ else }}Touch{{ end }}"
-        {{- if and $res.UIExtension $res.UIExtension.Icon }},
-        { icon: "{{$res.UIExtension.Icon}}" }{{ end }}
+        component_configmaps,
+        "",
+        "ConfigMap",
+        "Touch"
     );
-    {{- end }}
+    window.extensionsAPI.registerResourceExtension(
+        component_pods,
+        "",
+        "Pod",
+        "Touch Pod",
+        { icon: "fa-box" }
+    );
+    window.extensionsAPI.registerResourceExtension(
+        component_sa,
+        "",
+        "ServiceAccount",
+        "Touch SA",
+        { icon: "fa-box" }
+    );
 })(window);
+

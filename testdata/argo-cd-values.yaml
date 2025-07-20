@@ -1,9 +1,31 @@
+global:
+  logging:
+    level: debug
 dex:
   enabled: false
-
+notifications:
+  enabled: false
 configs:
+  rbac:
+    "policy.csv": |-
+      p, role:readonly, extensions, invoke, touch-configmaps, allow
+      p, role:readonly, extensions, invoke, touch-pods, allow
+      p, role:readonly, extensions, invoke, touch-sa, allow
+
   params:
-   "server.disable.auth": true
+    "server.disable.auth": true
+    "server.enable.proxy.extension": true
+  cm:
+    "extension.config.touch-configmaps": |-
+      services:
+        - url: http://argo-cd-touch-extension:8080/v1/touch/configmaps
+    "extension.config.touch-pods": |-
+      services:
+        - url: http://argo-cd-touch-extension:8080/v1/touch/pods
+    "extension.config.touch-sa": |-
+      services:
+        - url: http://argo-cd-touch-extension:8080/v1/touch/sa
+
 server:
   initContainers:
     - name: extension-touch

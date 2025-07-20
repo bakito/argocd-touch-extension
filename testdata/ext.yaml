@@ -1,0 +1,9 @@
+extensions:
+  - name: httpbin
+    backend:
+      connectionTimeout: 2s
+      keepAlive: 15s
+      idleConnectionTimeout: 60s
+      maxIdleConnections: 30
+      services:
+        - url: http://httpbin.org

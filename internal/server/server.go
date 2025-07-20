@@ -27,6 +27,7 @@ const (
 func Run(client k8s.Client, ext extension.Extension) error {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
+	router = gin.Default()
 
 	v1 := router.Group("/v1")
 	v1.GET("extension/"+extensionFileName, tarHandler(ext))
