@@ -10,7 +10,8 @@ tidy:
 	go mod tidy
 
 # Run tests
-test: lint test-ci
+test: lint
+	go test -v ./...
 
 release: tb.semver tb.goreleaser
 	@version=$$($(TB_SEMVER)); \

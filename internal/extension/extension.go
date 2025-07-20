@@ -135,7 +135,7 @@ func (e *extension) generateExtensionFiles(uiExtensionTemplate string) error {
 }
 
 func (e *extension) renderTemplate(tpl templateConfig) ([]byte, error) {
-	t, err := template.New(tpl.name).Funcs(sprig.TxtFuncMap()).Parse(tpl.content)
+	t, err := template.New(tpl.name).Funcs(sprig.TxtFuncMap()).Option("missingkey=error").Parse(tpl.content)
 	if err != nil {
 		return nil, err
 	}
