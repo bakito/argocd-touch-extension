@@ -25,7 +25,7 @@ const (
 	headerArgocdAppName       = "Argocd-Application-Name"
 	headerArgocdProjName      = "Argocd-Project-Name"
 	headerArgocdExtensionName = "Argocd-Touch-Extension-Name"
-	// headerArgoCDUsername    = "Argocd-Username" // .
+	headerArgoCDUsername      = "Argocd-Username"
 	// headerArgoCDGroups      = "Argocd-User-Groups" // .
 
 	touchAPIPath = "/v1/touch"
@@ -127,8 +127,13 @@ func handleTouch(cl k8s.Client, res config.Resource) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		namespace := c.Param("namespace")
 		name := c.Param("name")
-
-		if err := cl.PatchAnnotation(c, res, namespace, name, "argocd.bakito.ch/touch", metav1.Now().Format(time.RFC3339)); err != nil {
+		
+		value := metav1.Now().Format(time.RFC3339)
+		if user:= c.GetHeader(headerArgoCDUsername); user != "" {
+			value += " by: " + user
+		}
+		
+		if err := cl.PatchAnnotation(c, res, namespace, name, "argocd.bakito.ch/touch", value); err != nil {
 			slog.Error("Failed to patch annotation", "error", err, "resource", res.Name, "namespace", namespace, "name", name)
 			var se *kerr.StatusError
 			if errors.As(err, &se) {
