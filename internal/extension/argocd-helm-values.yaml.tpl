@@ -14,6 +14,10 @@ configs:
     "extension.config.touch-{{$name}}": |-
       services:
         - url: {{$.ServiceAddress}}
+          headers:
+            - name: Argocd-Touch-Extension-Name
+              value: {{$name}}
+
     {{- end }}
 
 server:

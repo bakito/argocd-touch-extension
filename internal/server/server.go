@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -21,8 +22,13 @@ import (
 )
 
 const (
-	headerArgocdAppName  = "Argocd-Application-Name"
-	headerArgocdProjName = "Argocd-Project-Name"
+	headerArgocdAppName       = "Argocd-Application-Name"
+	headerArgocdProjName      = "Argocd-Project-Name"
+	headerArgocdExtensionName = "Argocd-Touch-Extension-Name"
+	// headerArgoCDUsername    = "Argocd-Username" // .
+	// headerArgoCDGroups      = "Argocd-User-Groups" // .
+
+	touchAPIPath = "/v1/touch"
 )
 
 func Run(client k8s.Client, ext extension.Extension, debug bool) error {
@@ -41,7 +47,7 @@ func Run(client k8s.Client, ext extension.Extension, debug bool) error {
 	v1.GET("extension/deployment", deploymentHandler(ext))
 	v1.GET("extension/rbac", rbacHandler(ext))
 
-	v1Touch := router.Group("/v1/touch")
+	v1Touch := router.Group(touchAPIPath)
 	v1Touch.Use(validateArgocdHeaders())
 
 	for name, res := range ext.Resources() {
@@ -55,26 +61,36 @@ func Run(client k8s.Client, ext extension.Extension, debug bool) error {
 
 func validateArgocdHeaders() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		slog.Info("headers", "H", fmt.Sprintf("%v", c.Request.Header))
-		if validateHeader(c, headerArgocdAppName) {
+		if ok, _ := validateHeader(c, headerArgocdAppName); !ok {
 			return
 		}
-		if validateHeader(c, headerArgocdProjName) {
+		if ok, _ := validateHeader(c, headerArgocdProjName); !ok {
 			return
+		}
+		ok, extName := validateHeader(c, headerArgocdExtensionName)
+		if !ok {
+			return
+		}
+		if !strings.HasPrefix(c.Request.URL.Path, fmt.Sprintf("%s/%s/", touchAPIPath, extName)) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid extension name: " + extName,
+			})
+			c.Abort()
 		}
 		c.Next()
 	}
 }
 
-func validateHeader(c *gin.Context, name string) bool {
-	if argocdApp := c.GetHeader(name); argocdApp == "" {
+func validateHeader(c *gin.Context, name string) (bool, string) {
+	header := c.GetHeader(name)
+	if header == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Missing required header: " + name,
 		})
 		c.Abort()
-		return true
+		return false, ""
 	}
-	return false
+	return true, header
 }
 
 func start(router *gin.Engine) error {
