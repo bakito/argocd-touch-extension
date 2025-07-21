@@ -1,7 +1,13 @@
 # ArgoCD Extension to touch Resources
 
 This ArgoCD extension adds an additional tab to selected resources, allowing to touch (add/update an annotation) these.
-This can be helpful to trigger refrech ExternalSecrets.
+This can be helpful to trigger refrech [ExternalSecrets](https://external-secrets.io/latest/introduction/faq/#can-i-manually-trigger-a-secret-refresh).
+
+## Config
+
+Config for ArgoCD can be generated. Use `argocd-touch-extension config --help` for options.
+
+## Links
 
 https://argo-cd.readthedocs.io/en/stable/developer-guide/extensions/ui-extensions/
 https://argo-cd.readthedocs.io/en/stable/developer-guide/extensions/proxy-extensions/
