@@ -128,12 +128,12 @@ func handleTouch(cl k8s.Client, res config.Resource) gin.HandlerFunc {
 		namespace := c.Param("namespace")
 		name := c.Param("name")
 
-		l := slog.WithValues("resource", res.Name, "namespace", namespace, "name", name)
+		l := slog.With("resource", res.Name, "namespace", namespace, "name", name)
 
 		value := metav1.Now().Format(time.RFC3339)
 		if user:= c.GetHeader(headerArgoCDUsername); user != "" {
 			value += " by: " + user
-			l = l.WithValues("user", user)
+			l = l.With("user", user)
 		}
 
 		if err := cl.PatchAnnotation(c, res, namespace, name, "argocd.bakito.ch/touch", value); err != nil {
