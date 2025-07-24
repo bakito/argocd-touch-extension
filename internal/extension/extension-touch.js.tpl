@@ -8,7 +8,6 @@
         const resourceNamespace = resource?.metadata?.namespace || '';
         const resourceName = resource?.metadata?.name || '';
 
-
         const handleClick = async () => {
             try {
                 const response = await fetch(`/extensions/touch-${extensionName}/v1/touch/${extensionName}/${resourceNamespace}/${resourceName}`, {
@@ -32,8 +31,11 @@
             {},
             React.createElement(
                 "button",
-                { onClick: handleClick },
-                "Touch Resource"
+                {
+                    onClick: handleClick,
+                    className: "argo-button argo-button--base"
+                },
+                `Touch ${resource.kind}`
             )
         );
     };
