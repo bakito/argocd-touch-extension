@@ -24,18 +24,18 @@ type client struct {
 	discovery discovery.DiscoveryInterface
 }
 
-func NewClient() (Client, error) {
+func NewClient(ctx context.Context) (Client, error) {
 	clientCfg := ctrl.GetConfigOrDie()
 
 	dynamicClient, err := dynamic.NewForConfig(clientCfg)
 	if err != nil {
-		slog.Error("Failed to create dynamic client", "error", err)
+		slog.ErrorContext(ctx, "Failed to create dynamic client", "error", err)
 		return nil, err
 	}
 
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(clientCfg)
 	if err != nil {
-		slog.Error("Failed to create discovery client", "error", err)
+		slog.ErrorContext(ctx, "Failed to create discovery client", "error", err)
 		return nil, err
 	}
 

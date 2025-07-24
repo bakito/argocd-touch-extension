@@ -31,7 +31,7 @@ const (
 	touchAPIPath = "/v1/touch"
 )
 
-func Run(client k8s.Client, ext extension.Extension, debug bool) error {
+func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug bool) error {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 
@@ -52,11 +52,11 @@ func Run(client k8s.Client, ext extension.Extension, debug bool) error {
 
 	for name, res := range ext.Resources() {
 		slog.With("resource", name, "group", res.Group, "version", res.Version, "kind", res.Kind).
-			Info("Registering handler")
+			InfoContext(ctx, "Registering handler")
 		v1Touch.PUT(name+"/:namespace/:name", handleTouch(client, res))
 	}
 
-	return start(router)
+	return start(ctx, router)
 }
 
 func validateArgocdHeaders() gin.HandlerFunc {
@@ -93,8 +93,8 @@ func validateHeader(c *gin.Context, name string) (bool, string) {
 	return true, header
 }
 
-func start(router *gin.Engine) error {
-	slog.With("port", ":8080").Info("Starting server")
+func start(ctx context.Context, router *gin.Engine) error {
+	slog.With("port", ":8080").InfoContext(ctx, "Starting server")
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: router,
@@ -103,14 +103,14 @@ func start(router *gin.Engine) error {
 	quit := make(chan os.Signal, 1)
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("Error starting server", "error", err)
+			slog.ErrorContext(ctx, "Error starting server", "error", err)
 			quit <- syscall.SIGTERM
 		}
 	}()
 
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	slog.Info("Shutting down server...")
+	slog.InfoContext(ctx, "Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -119,7 +119,7 @@ func start(router *gin.Engine) error {
 		return fmt.Errorf("server forced to shutdown: %w", err)
 	}
 
-	slog.Info("Server exiting")
+	slog.InfoContext(ctx, "Server exiting")
 	return nil
 }
 
@@ -137,7 +137,7 @@ func handleTouch(cl k8s.Client, res config.Resource) gin.HandlerFunc {
 		}
 
 		if err := cl.PatchAnnotation(c, res, namespace, name, "argocd.bakito.ch/touch", value); err != nil {
-			l.Error("Failed to touch resource", "error", err)
+			l.ErrorContext(c, "Failed to touch resource", "error", err)
 			var se *kerr.StatusError
 			if errors.As(err, &se) {
 				c.JSON(int(se.Status().Code), err)
@@ -146,7 +146,7 @@ func handleTouch(cl k8s.Client, res config.Resource) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, err)
 			return
 		}
-		l.Info("Ressource touched")
+		l.InfoContext(c, "Resource touched")
 
 		c.Status(http.StatusOK)
 	}
