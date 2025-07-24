@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+
 	"github.com/bakito/argocd-touch-extension/internal/config"
 	"github.com/bakito/argocd-touch-extension/internal/extension"
 	"github.com/bakito/argocd-touch-extension/internal/k8s"
@@ -12,8 +14,8 @@ type Application struct {
 	config config.TouchConfig
 }
 
-func New(cfg config.TouchConfig) (*Application, error) {
-	client, err := k8s.NewClient()
+func New(ctx context.Context, cfg config.TouchConfig) (*Application, error) {
+	client, err := k8s.NewClient(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -24,13 +26,13 @@ func New(cfg config.TouchConfig) (*Application, error) {
 	}, nil
 }
 
-func (a *Application) Run(debug bool) error {
+func (a *Application) Run(ctx context.Context, debug bool) error {
 	ext, err := a.Extension()
 	if err != nil {
 		return err
 	}
 
-	return server.Run(a.client, ext, debug)
+	return server.Run(ctx, a.client, ext, debug)
 }
 
 func (a *Application) Extension() (extension.Extension, error) {

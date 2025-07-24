@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"log/slog"
 	"os"
 
@@ -27,7 +28,7 @@ var (
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		slog.Error("Error running application", "error", err)
+		slog.ErrorContext(context.Background(), "Error running application", "error", err)
 		os.Exit(1)
 	}
 }
@@ -45,18 +46,18 @@ func initConfigFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("config")
 }
 
-func runRoot(_ *cobra.Command, _ []string) error {
+func runRoot(cmd *cobra.Command, _ []string) error {
 	cfg, err := loadConfig()
 	if err != nil {
 		return err
 	}
 
-	application, err := app.New(cfg)
+	application, err := app.New(cmd.Context(), cfg)
 	if err != nil {
 		return err
 	}
 
-	return application.Run(debug)
+	return application.Run(cmd.Context(), debug)
 }
 
 func loadConfig() (config.TouchConfig, error) {

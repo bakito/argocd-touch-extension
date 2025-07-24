@@ -31,7 +31,7 @@ func runConfig(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	application, err := app.New(cfg)
+	application, err := app.New(cmd.Context(), cfg)
 	if err != nil {
 		return err
 	}
