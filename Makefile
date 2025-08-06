@@ -23,3 +23,13 @@ release: tb.semver tb.goreleaser
 
 test-release: tb.goreleaser
 	$(TB_GORELEASER) --skip=publish --snapshot --clean --parallelism 2
+
+.PHONY: release
+release: tb.semver tb.goreleaser
+	@version=$$($(TB_SEMVER)); \
+	git tag -s $$version -m"Release $$version"
+	$(TB_GORELEASER) --clean --parallelism 2
+
+.PHONY: test-release
+test-release: tb.goreleaser
+	$(TB_GORELEASER) --skip=publish --snapshot --clean --parallelism 2
