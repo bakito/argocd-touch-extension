@@ -1,7 +1,7 @@
 # ArgoCD Extension to touch Resources
 
 This ArgoCD extension adds an additional tab to selected resources, allowing to touch (add/update an annotation) these.
-This can be helpful to trigger refrech [ExternalSecrets](https://external-secrets.io/latest/introduction/faq/#can-i-manually-trigger-a-secret-refresh).
+This can be helpful to trigger refresh [ExternalSecrets](https://external-secrets.io/latest/introduction/faq/#can-i-manually-trigger-a-secret-refresh).
 
 ## Config
 
