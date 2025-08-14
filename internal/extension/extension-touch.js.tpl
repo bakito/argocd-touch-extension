@@ -19,7 +19,24 @@
                     }
                 });
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    let errorText = `Response was not ok (${response.status})`;
+                    try {
+                        const errorData = await response.text();
+                        if (errorData) {
+                            errorText = `${errorData} (${response.status})`;
+                        }
+                    } catch (e) {
+                        // Fallback to default error message
+                    }
+                    const notifications = document.querySelector('.notifications-container');
+                    if (notifications) {
+                        const notification = document.createElement('div');
+                        notification.className = 'argo-notification argo-notification--error';
+                        notification.innerHTML = `<div class="argo-notification__content">${errorText}</div>`;
+                        notifications.appendChild(notification);
+                        setTimeout(() => notification.remove(), 5000);
+                    }
+                    throw new Error(errorText);
                 }
             } catch (error) {
                 console.error('Error:', error);
