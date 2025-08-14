@@ -34,10 +34,6 @@ const (
 func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug bool) error {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
-
-	if debug {
-		router.Use(sloggin.New(slog.Default()))
-	}
 	router.Use(gin.Recovery())
 
 	router.GET("/", func(c *gin.Context) {
@@ -45,6 +41,10 @@ func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug 
 	})
 
 	v1 := router.Group("/v1")
+	if debug {
+		v1.Use(sloggin.New(slog.Default()))
+	}
+
 	v1.GET("extension/"+extension.ExtensionJS, jsHandler(ext))
 	v1.GET("extension/"+extensionFileName, tarHandler(ext))
 	v1.GET("extension/"+extensionChecksum, tarChecksumHandler(ext))
