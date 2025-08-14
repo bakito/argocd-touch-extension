@@ -1,9 +1,27 @@
 package config
 
+import (
+	"fmt"
+	"regexp"
+)
+
+var keyPattern = regexp.MustCompile("^[A-Za-z0-9_]{3,}$")
+
 type TouchConfig struct {
 	ServiceAddress    string
 	ExtensionTemplate string
-	Resources         map[string]Resource
+	Resources         Resources
+}
+
+type Resources map[string]Resource
+
+func (r Resources) validateKeys() error {
+	for key := range r {
+		if !keyPattern.MatchString(key) {
+			return fmt.Errorf("resource key %q must match pattern %q", key, keyPattern.String())
+		}
+	}
+	return nil
 }
 
 type Resource struct {

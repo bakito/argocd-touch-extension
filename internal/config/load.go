@@ -30,5 +30,5 @@ func Load(fileName string) (TouchConfig, error) {
 		return TouchConfig{}, fmt.Errorf("unsupported file format: %s", ext)
 	}
 
-	return config, nil
+	return config, config.Resources.validateKeys()
 }
