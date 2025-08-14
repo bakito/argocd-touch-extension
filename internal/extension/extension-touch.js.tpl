@@ -19,7 +19,8 @@
                         'Argocd-Project-Name': project,
                     }
                 });
-                setTimeout(() => setStatusMessage(''), 5000);
+                clearTimeout(window.touchStatusTimeout);
+                window.touchStatusTimeout = setTimeout(() => setStatusMessage(''), 5000);
                 if (!response.ok) {
                     setStatusMessage(`❌ Response was not ok: ${response.status} ${response.statusText}`);
                     throw new Error('Response was not ok');
