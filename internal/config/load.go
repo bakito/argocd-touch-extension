@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 
 	"gopkg.in/yaml.v3"
 )
-
-var keyPattern = regexp.MustCompile("^[A-Za-z0-9_]{3,}$")
 
 func Load(fileName string) (TouchConfig, error) {
 	data, err := os.ReadFile(fileName)
@@ -33,11 +30,5 @@ func Load(fileName string) (TouchConfig, error) {
 		return TouchConfig{}, fmt.Errorf("unsupported file format: %s", ext)
 	}
 
-for key := range config.Resources {
-  if !keyPattern.MatchString(key) {
-    return TouchConfig{}, fmt.Errorf("key %q must match pattern %q", key, keyPattern.string())
-  }
-}
-	
-	return config, nil
+	return config, config.Resources.validateKeys()
 }
