@@ -1,23 +1,12 @@
-# -- Optional labels to apply to all resources
-commonLabels: {}
-
-image:
-  # --  Repository to use
-  repository: ghcr.io/bakito/argocd-touch-extension
-  # -- Overrides the image tag (default is the chart appVersion)
-  tag:
-  # -- Image pull policy
-  pullPolicy: IfNotPresent
-  # -- Additional command args
-
-# -- Secrets with credentials to pull images from a private registry. Registry secret names as an array.
-imagePullSecrets: []
-
 # -- String to partially override
 nameOverride: ""
 
 # -- String to fully override
 fullnameOverride: ""
+
+# -- Optional labels to apply to all resources
+commonLabels: {}
+
 
 rbac:
   # -- Specifies whether rbac should be created
@@ -38,6 +27,18 @@ service:
 deployment:
   # -- The number of pods to run
   replicaCount: 1
+
+  image:
+    # --  Repository to use
+    repository: ghcr.io/bakito/argocd-touch-extension
+    # -- Overrides the image tag (default is the chart appVersion)
+    tag:
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
+    # -- Additional command args
+
+  # -- Secrets with credentials to pull images from a private registry. Registry secret names as an array.
+  imagePullSecrets: []
 
   # -- Max number of old replicasets to retain
   revisionHistoryLimit: 2
@@ -110,9 +111,11 @@ config: {}
   # configmaps:
   #   group: ""
   #   kind: ConfigMap
+  #   resource: configmaps
   # pods:
   #   group: ""
   #   kind: Pod
+  #   resource: pods
   #   uiExtension:
   #     tabTitle: Touch Pod
   #     icon: fa-box

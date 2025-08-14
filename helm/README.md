@@ -20,6 +20,10 @@ helm install my-argocd-touch-extension oci://ghcr.io/bakito/helm-charts/argocd-t
 | config | object | `{}` | Resources Config for the extension |
 | deployment.affinity | object | `{}` | Assign custom [affinity] rules to the deployment |
 | deployment.debug | bool | `false` |  |
+| deployment.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
+| deployment.image.repository | string | `"ghcr.io/bakito/argocd-touch-extension"` | Repository to use |
+| deployment.image.tag | string | `nil` | Overrides the image tag (default is the chart appVersion) |
+| deployment.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Registry secret names as an array. |
 | deployment.livenessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/","port":"api"}}` | Liveness Probe |
 | deployment.nodeSelector | object | `{}` | [Node selector] |
 | deployment.readinessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/","port":"api"}}` | Readiness Probe |
@@ -30,10 +34,6 @@ helm install my-argocd-touch-extension oci://ghcr.io/bakito/helm-charts/argocd-t
 | deployment.startupProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/","port":"api"}}` | Startup Probe |
 | deployment.tolerations | list | `[]` | [Tolerations] for use with node taints |
 | fullnameOverride | string | `""` | String to fully override |
-| image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
-| image.repository | string | `"ghcr.io/bakito/argocd-touch-extension"` | Repository to use |
-| image.tag | string | `nil` | Overrides the image tag (default is the chart appVersion) |
-| imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Registry secret names as an array. |
 | nameOverride | string | `""` | String to partially override |
 | rbac.create | bool | `true` | Specifies whether rbac should be created |
 | service.annotations | object | `{}` | Service annotations |

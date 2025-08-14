@@ -2,9 +2,11 @@ config:
   configmaps:
     group: ""
     kind: ConfigMap
+    resource: configmaps
   pods:
     group: ""
     kind: Pod
+    resource: pods
     uiExtension:
       tabTitle: Touch Pod
       icon: fa-box
