@@ -1,0 +1,11 @@
+apiVersion: v2
+appVersion: v0.0.3
+description: An ArgoCD extension, enabling to touch resources
+home: https://github.com/bakito/argocd-touch-extension
+maintainers:
+  - name: bakito
+    url: https://github.com/bakito
+name: argocd-touch-extension
+version: 0.0.3
+sources:
+  - https://github.com/bakito/argocd-touch-extension

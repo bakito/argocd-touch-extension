@@ -11,6 +11,7 @@ $(TB_LOCALBIN):
 ## Tool Binaries
 TB_GOLANGCI_LINT ?= $(TB_LOCALBIN)/golangci-lint
 TB_GORELEASER ?= $(TB_LOCALBIN)/goreleaser
+TB_HELM_DOCS ?= $(TB_LOCALBIN)/helm-docs
 TB_SEMVER ?= $(TB_LOCALBIN)/semver
 
 ## Tool Versions
@@ -18,6 +19,8 @@ TB_SEMVER ?= $(TB_LOCALBIN)/semver
 TB_GOLANGCI_LINT_VERSION ?= v2.4.0
 # renovate: packageName=github.com/goreleaser/goreleaser/v2
 TB_GORELEASER_VERSION ?= v2.11.2
+# renovate: packageName=github.com/norwoodj/helm-docs/cmd/helm-docs
+TB_HELM_DOCS_VERSION ?= v1.14.2
 # renovate: packageName=github.com/bakito/semver
 TB_SEMVER_VERSION ?= v1.1.3
 
@@ -30,6 +33,10 @@ $(TB_GOLANGCI_LINT): $(TB_LOCALBIN)
 tb.goreleaser: $(TB_GORELEASER) ## Download goreleaser locally if necessary.
 $(TB_GORELEASER): $(TB_LOCALBIN)
 	test -s $(TB_LOCALBIN)/goreleaser || GOBIN=$(TB_LOCALBIN) go install github.com/goreleaser/goreleaser/v2@$(TB_GORELEASER_VERSION)
+.PHONY: tb.helm-docs
+tb.helm-docs: $(TB_HELM_DOCS) ## Download helm-docs locally if necessary.
+$(TB_HELM_DOCS): $(TB_LOCALBIN)
+	test -s $(TB_LOCALBIN)/helm-docs || GOBIN=$(TB_LOCALBIN) go install github.com/norwoodj/helm-docs/cmd/helm-docs@$(TB_HELM_DOCS_VERSION)
 .PHONY: tb.semver
 tb.semver: $(TB_SEMVER) ## Download semver locally if necessary.
 $(TB_SEMVER): $(TB_LOCALBIN)
@@ -41,6 +48,7 @@ tb.reset:
 	@rm -f \
 		$(TB_LOCALBIN)/golangci-lint \
 		$(TB_LOCALBIN)/goreleaser \
+		$(TB_LOCALBIN)/helm-docs \
 		$(TB_LOCALBIN)/semver
 
 ## Update Tools
@@ -49,5 +57,6 @@ tb.update: tb.reset
 	toolbox makefile --renovate -f $(TB_LOCALDIR)/Makefile \
 		github.com/golangci/golangci-lint/v2/cmd/golangci-lint \
 		github.com/goreleaser/goreleaser/v2 \
+		github.com/norwoodj/helm-docs/cmd/helm-docs \
 		github.com/bakito/semver
 ## toolbox - end

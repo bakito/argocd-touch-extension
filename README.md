@@ -1,7 +1,7 @@
 # ArgoCD Extension to touch Resources
 
 This ArgoCD extension adds an additional tab to selected resources, allowing to touch (add/update an annotation) these.
-This can be helpful to trigger refrech [ExternalSecrets](https://external-secrets.io/latest/introduction/faq/#can-i-manually-trigger-a-secret-refresh).
+This can be helpful to trigger refresh [ExternalSecrets](https://external-secrets.io/latest/introduction/faq/#can-i-manually-trigger-a-secret-refresh).
 
 ## Config
 
@@ -42,4 +42,6 @@ helm upgrade --install argo-cd -n argo-cd oci://ghcr.io/argoproj/argo-helm/argo-
 
 kubectl apply -f testdata/app.yaml
 
+
+helm  upgrade --install argo-cd-touch-extension -n argo-cd ./helm/ -f testdata/test-values.yaml
 ```

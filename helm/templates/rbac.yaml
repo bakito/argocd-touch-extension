@@ -1,0 +1,35 @@
+{{ if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ template "argocd-touch-extension.fullname" . }}
+  labels:
+    {{- include "argocd-touch-extension.labels" . | nindent 4 }}
+rules:
+  {{- range $_, $rule := (required "" .Values.rbac.rules) }}
+  - apiGroups:
+      {{- $rule.apiGroups | toYaml | nindent 6 }}
+    resources:
+      {{- $rule.resources | toYaml | nindent 6 }}
+    verbs:
+      - get
+      - patch
+{{- end }}
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ template "argocd-touch-extension.fullname" . }}
+  labels:
+    {{- include "argocd-touch-extension.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ template "argocd-touch-extension.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "argocd-touch-extension.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{ end }}
