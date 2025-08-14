@@ -1,0 +1,21 @@
+{{- if .Values.extensions.touch.enabled }}
+# Source: argo-cd/charts/argo-cd/templates/argocd-application-controller/metrics.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: argocd-extension-touch
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: argocd-extension-touch
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: api
+      protocol: TCP
+      port: 8080
+      targetPort: api
+  selector:
+    app.kubernetes.io/name: argocd-extension-touch
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
