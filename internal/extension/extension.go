@@ -24,7 +24,8 @@ type templateConfig struct {
 }
 
 const (
-	extensionJSPath = "resources/extension-touch.js"
+	extensionJS     = "extension-touch.js"
+	extensionJSPath = "resources/" + extensionJS
 	fileMode        = 0o644
 )
 
