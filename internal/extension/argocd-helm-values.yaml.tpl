@@ -4,7 +4,8 @@ configs:
   rbac:
     "policy.csv": |-
     {{- range $name, $_ := .Resources }}
-      p, role:readonly, extensions, invoke, touch-{{$name}}, allow
+      p, role:admin,    extensions, invoke, touch-{{$name}}, allow
+      p, role:readonly, extensions, invoke, touch-{{$name}}, deny
     {{- end }}
 
   params:
