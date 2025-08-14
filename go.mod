@@ -1,6 +1,6 @@
 module github.com/bakito/argocd-touch-extension
 
-go 1.24.5
+go 1.25.0
 
 require (
 	github.com/gin-gonic/gin v1.10.1
@@ -8,7 +8,7 @@ require (
 	github.com/samber/slog-gin v1.15.1
 	github.com/spf13/cobra v1.9.1
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/apimachinery v0.33.3
+	k8s.io/apimachinery v0.33.4
 	k8s.io/client-go v0.33.3
 	sigs.k8s.io/controller-runtime v0.21.0
 )
