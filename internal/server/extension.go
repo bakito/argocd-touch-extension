@@ -9,6 +9,7 @@ import (
 
 const (
 	contentTypeYAML = "application/yaml"
+	contentTypeJS   = "application/javascript"
 	contentTypeTAR  = "application/x-tar"
 
 	extensionFileName = "extension.tar.gz"
@@ -36,8 +37,8 @@ func deploymentHandler(ext extension.Extension) gin.HandlerFunc {
 func jsHandler(ext extension.Extension) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Content-Disposition", "attachment; filename="+extension.ExtensionJS)
-		tarGZ, _ := ext.ExtensionJS()
-		c.Data(http.StatusOK, contentTypeTAR, tarGZ)
+		js, _ := ext.ExtensionJS()
+		c.Data(http.StatusOK, contentTypeJS, js)
 	}
 }
 
