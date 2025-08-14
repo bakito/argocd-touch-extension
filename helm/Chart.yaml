@@ -6,6 +6,7 @@ description: |
 
   Resources can be configured individually, where each resource will receive an additional tab in the Resource detail view.
 home: https://github.com/bakito/argocd-touch-extension
+icon: https://raw.githubusercontent.com/bakito/argocd-touch-extension/main/helm/icon.png
 maintainers:
   - name: bakito
     url: https://github.com/bakito
