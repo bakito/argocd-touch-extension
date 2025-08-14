@@ -12,7 +12,7 @@ func TestResources_validateKeys(t *testing.T) {
 	}{
 		{
 			name:        "valid keys",
-			resources:   Resources{"validKey1": Resource{}, "another_valid_key": Resource{}},
+			resources:   Resources{"validKey1": Resource{}, "another_valid_key": Resource{}, "sa": Resource{}},
 			expectError: false,
 		},
 		{
@@ -28,6 +28,11 @@ func TestResources_validateKeys(t *testing.T) {
 		{
 			name:        "invalid key empty string",
 			resources:   Resources{"": Resource{}},
+			expectError: true,
+		},
+		{
+			name:        "invalid key too short",
+			resources:   Resources{"a": Resource{}},
 			expectError: true,
 		},
 		{

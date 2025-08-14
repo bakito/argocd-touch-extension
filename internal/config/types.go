@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-var keyPattern = regexp.MustCompile("^[A-Za-z0-9_]{3,}$")
+var keyPattern = regexp.MustCompile("^[A-Za-z0-9_]{2,}$")
 
 type TouchConfig struct {
 	ServiceAddress    string

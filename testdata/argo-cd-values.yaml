@@ -41,7 +41,7 @@ server:
   #  tag: latest
   initContainers:
     - name: extension-touch
-      image: quay.io/argoprojlabs/argocd-extension-installer:v0.0.5@sha256:27e72f047298188e2de1a73a1901013c274c4760c92f82e6e46cd5fbd0957c6b
+      image: quay.io/argoprojlabs/argocd-extension-installer:v0.0.8
       env:
         - name: EXTENSION_URL
           value: http://argo-cd-touch-extension:8080/v1/extension/extension.tar.gz

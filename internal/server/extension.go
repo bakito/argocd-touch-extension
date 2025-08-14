@@ -46,7 +46,7 @@ func tarChecksumHandler(ext extension.Extension) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Content-Disposition", "attachment; filename="+extensionChecksum)
 		_, cs := ext.ExtensionTarGz()
-		c.String(http.StatusOK, "%s  %s", cs, extensionChecksum)
+		c.String(http.StatusOK, "%s  %s", cs, extensionFileName)
 	}
 }
 
