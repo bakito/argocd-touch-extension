@@ -26,8 +26,7 @@ release: tb.semver tb.goreleaser
 test-release: tb.goreleaser
 	$(TB_GORELEASER) --skip=publish --snapshot --clean --parallelism 2
 
-
-helm-docs: tb.helm-docs update-chart-version
+helm-docs: tb.helm-docs
 	@$(TB_HELM_DOCS)
 
 # Detect OS

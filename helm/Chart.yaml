@@ -1,11 +1,15 @@
 apiVersion: v2
-appVersion: v0.0.3
-description: An ArgoCD extension, enabling to touch resources
+appVersion: v0.0.4
+description: |
+  An ArgoCD extension, enabling to touch resources by adding an annotation.
+  This is useful for e.g. ArgoCD to trigger a re-sync of a resource.
+
+  Resources can be configured individually, where each resource will receive an additional tab in the Resource detail view.
 home: https://github.com/bakito/argocd-touch-extension
 maintainers:
   - name: bakito
     url: https://github.com/bakito
 name: argocd-touch-extension
-version: 0.0.3
+version: 0.0.4
 sources:
   - https://github.com/bakito/argocd-touch-extension

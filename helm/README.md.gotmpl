@@ -12,6 +12,50 @@
 helm install my-{{ template "chart.name" . }} oci://ghcr.io/bakito/helm-charts/{{ template "chart.name" . }} --version {{ template "chart.version" . }}
 ```
 
+# Configuration
+
+## UI extension
+
+Touch actions are configured via the `config` section, where you can define the resources to touch.
+Each is defined with a unique name and kubernetes group and kind.
+
+Optionally, you can define a tab title and an [icon](https://fontawesome.com/icons) for the UI.
+
+```yaml
+config:
+  configmaps:
+    group: ""
+    kind: ConfigMap
+  pods:
+    group: ""
+    kind: Pod
+    uiExtension:
+      tabTitle: Touch Pod
+      icon: fa-box
+  sa:
+    group: ""
+    kind: ServiceAccount
+    uiExtension:
+      tabTitle: Touch SA
+      icon: fa-box
+```
+
+## RBAC
+
+To allow the extension to patch the resources, RBAC needs to be enabled and configured.<br/>
+All resources listed in the configuration must also be listed as rbac rules. (only apiGroups and resources, verbs will be ignored and set to ["get", "patch"])
+
+```yaml
+rbac:
+  rules:
+    - apiGroups:
+        - ''
+      resources:
+        - configmaps
+        - pods
+        - serviceaccounts
+```
+
 {{ template "chart.valuesSection" . }}
 
 ----------------------------------------------

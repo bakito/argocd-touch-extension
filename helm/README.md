@@ -1,15 +1,62 @@
 # argocd-touch-extension
 
-![Version: 0.0.3](https://img.shields.io/badge/Version-0.0.3-informational?style=flat-square) ![AppVersion: v0.0.3](https://img.shields.io/badge/AppVersion-v0.0.3-informational?style=flat-square)
+![Version: 0.0.4](https://img.shields.io/badge/Version-0.0.4-informational?style=flat-square) ![AppVersion: v0.0.4](https://img.shields.io/badge/AppVersion-v0.0.4-informational?style=flat-square)
 
-An ArgoCD extension, enabling to touch resources
+An ArgoCD extension, enabling to touch resources by adding an annotation.
+This is useful for e.g. ArgoCD to trigger a re-sync of a resource.
+
+Resources can be configured individually, where each resource will receive an additional tab in the Resource detail view.
 
 ## Installation
 
 ### oci
 
 ```console
-helm install my-argocd-touch-extension oci://ghcr.io/bakito/helm-charts/argocd-touch-extension --version 0.0.3
+helm install my-argocd-touch-extension oci://ghcr.io/bakito/helm-charts/argocd-touch-extension --version 0.0.4
+```
+
+# Configuration
+
+## UI extension
+
+Touch actions are configured via the `config` section, where you can define the resources to touch.
+Each is defined with a unique name and kubernetes group and kind.
+
+Optionally, you can define a tab title and an [icon](https://fontawesome.com/icons) for the UI.
+
+```yaml
+config:
+  configmaps:
+    group: ""
+    kind: ConfigMap
+  pods:
+    group: ""
+    kind: Pod
+    uiExtension:
+      tabTitle: Touch Pod
+      icon: fa-box
+  sa:
+    group: ""
+    kind: ServiceAccount
+    uiExtension:
+      tabTitle: Touch SA
+      icon: fa-box
+```
+
+## RBAC
+
+To allow the extension to patch the resources, RBAC needs to be enabled and configured.<br/>
+All resources listed in the configuration must also be listed as rbac rules. (only apiGroups and resources, verbs will be ignored and set to ["get", "patch"])
+
+```yaml
+rbac:
+  rules:
+    - apiGroups:
+        - ''
+      resources:
+        - configmaps
+        - pods
+        - serviceaccounts
 ```
 
 ## Values
