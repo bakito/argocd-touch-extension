@@ -40,6 +40,10 @@ func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug 
 	}
 	router.Use(gin.Recovery())
 
+	router.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "argocd-touch-extension")
+	})
+
 	v1 := router.Group("/v1")
 	v1.GET("extension/"+extensionFileName, tarHandler(ext))
 	v1.GET("extension/"+extensionChecksum, tarChecksumHandler(ext))
