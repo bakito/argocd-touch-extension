@@ -1,0 +1,16 @@
+config:
+  configmaps:
+    group: ""
+    kind: ConfigMap
+  pods:
+    group: ""
+    kind: Pod
+    uiExtension:
+      tabTitle: Touch Pod
+      icon: fa-box
+  sa:
+    group: ""
+    kind: ServiceAccount
+    uiExtension:
+      tabTitle: Touch SA
+      icon: fa-box

@@ -1,0 +1,65 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Test
+        run: make test
+
+      - name: Build
+        run: go build -v ./...
+
+  helm:
+    name: Helm Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Set up Tools
+        run: make tb.semver tb.helm-docs
+
+      - name: Lint
+        run: |
+          cp helm/README.md helm/README.md.old
+          make helm-lint
+
+      - name: Check helm/README.md is correctly generated with 'make helm-docs'
+        run: |
+          # ignore version as it is updated during build
+          sed -i '/!\[Version\:/d' helm/README.md
+          sed -i '/!\[Version\:/d' helm/README.md.old
+          sed -i -E 's/--version [0-9]+.[0-9]+.[0-9]+/--version x.x.x/' helm/README.md
+          sed -i -E 's/--version [0-9]+.[0-9]+.[0-9]+/--version x.x.x/' helm/README.md.old
+          diff helm/README.md.old helm/README.md
+
+      - name: Template
+        run: make helm-template

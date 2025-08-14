@@ -1,10 +1,10 @@
-{{- if .Values.extensions.touch.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd-extension-touch
+  name: {{ include "argocd-touch-extension.fullname" . }}
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "argocd-touch-extension.labels" . | nindent 4 }}
 data:
   config.yaml: |
-    {{- .Values.extensions.touch.config | toYaml | nindent 4 }}
-{{- end }}
+    {{- if not .Values.config }}{{ fail "config must not be empty" }}{{ end }}{{- .Values.config | toYaml | nindent 4 }}

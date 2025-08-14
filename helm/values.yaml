@@ -1,0 +1,118 @@
+# -- Optional labels to apply to all resources
+commonLabels: {}
+
+image:
+  # --  Repository to use
+  repository: ghcr.io/bakito/argocd-touch-extension
+  # -- Overrides the image tag (default is the chart appVersion)
+  tag:
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+  # -- Additional command args
+
+# -- Secrets with credentials to pull images from a private registry. Registry secret names as an array.
+imagePullSecrets: []
+
+# -- String to partially override
+nameOverride: ""
+
+# -- String to fully override
+fullnameOverride: ""
+
+rbac:
+  # -- Specifies whether rbac should be created
+  create: true
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+
+service:
+  # -- Sets the type of the Service
+  type: ClusterIP
+  # -- Service port
+  port: 8080
+  # -- Service annotations
+  annotations: {}
+
+deployment:
+  # -- The number of pods to run
+  replicaCount: 1
+
+  # -- Max number of old replicasets to retain
+  revisionHistoryLimit: 2
+
+  debug: false
+
+  # -- Resource limits and requests for the pods.
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # -- Readiness Probe
+  readinessProbe:
+    failureThreshold: 3
+    # periodSeconds: 5
+    # successThreshold: 1
+    # timeoutSeconds: 10
+    # initialDelaySeconds: 30
+    httpGet:
+      path: /
+      port: api
+
+  # -- Liveness Probe
+  livenessProbe:
+    failureThreshold: 3
+    # periodSeconds: 10
+    # successThreshold: 1
+    # timeoutSeconds: 10
+    # initialDelaySeconds: 15
+    httpGet:
+      path: /
+      port: api
+
+  # -- Startup Probe
+  startupProbe:
+    failureThreshold: 3
+    # periodSeconds: 10
+    # successThreshold: 1
+    # timeoutSeconds: 10
+    # initialDelaySeconds: 15
+    httpGet:
+      path: /
+      port: api
+
+  # -- Hardening security
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    privileged: false
+    runAsGroup: 1001
+    runAsUser: 1001
+
+  # -- [Node selector]
+  nodeSelector: {}
+
+  # -- [Tolerations] for use with node taints
+  tolerations: []
+
+  # -- Assign custom [affinity] rules to the deployment
+  affinity: {}
+
+# -- Resources Config for the extension
+config: {}
+  # configmaps:
+  #   group: ""
+  #   kind: ConfigMap
+  # pods:
+  #   group: ""
+  #   kind: Pod
+  #   uiExtension:
+  #     tabTitle: Touch Pod
+  #     icon: fa-box
