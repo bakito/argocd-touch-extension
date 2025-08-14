@@ -45,6 +45,7 @@ func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug 
 	})
 
 	v1 := router.Group("/v1")
+	v1.GET("extension/"+extension.ExtensionJS, jsHandler(ext))
 	v1.GET("extension/"+extensionFileName, tarHandler(ext))
 	v1.GET("extension/"+extensionChecksum, tarChecksumHandler(ext))
 	v1.GET("extension/config", configHandler(ext))

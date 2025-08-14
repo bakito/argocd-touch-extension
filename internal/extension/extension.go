@@ -24,8 +24,8 @@ type templateConfig struct {
 }
 
 const (
-	extensionJS     = "extension-touch.js"
-	extensionJSPath = "resources/" + extensionJS
+	ExtensionJS     = "extension-touch.js"
+	extensionJSPath = "resources/" + ExtensionJS
 	fileMode        = 0o644
 )
 
@@ -59,7 +59,7 @@ func (e *Error) Error() string {
 type Extension interface {
 	Resources() map[string]config.Resource
 	ExtensionTarGz() ([]byte, string)
-	ExtensionJS() []byte
+	ExtensionJS() ([]byte, string)
 	ArgoCDConfig() []byte
 	ArgoCDDeployment() []byte
 	ProxyRBAC() []byte
@@ -70,6 +70,7 @@ type extension struct {
 	argocdConfig         []byte
 	argocdDeployment     []byte
 	extensionJS          []byte
+	extensionJSChecksum  string
 	extensionTar         []byte
 	extensionTarChecksum string
 	rbac                 []byte
@@ -117,6 +118,11 @@ func (e *extension) generateExtensionFiles(uiExtensionTemplate string) error {
 	e.extensionJS, err = e.renderTemplate(uiTpl)
 	if err != nil {
 		return &Error{"render extension", err}
+	}
+
+	e.extensionJSChecksum, err = calculateSHA256(e.extensionJS)
+	if err != nil {
+		return &Error{"checksum extension", err}
 	}
 
 	if e.extensionTar, e.extensionTarChecksum, err = e.createTar(); err != nil {
@@ -174,8 +180,8 @@ func (e *extension) Resources() map[string]config.Resource {
 	return e.cfg.Resources
 }
 
-func (e *extension) ExtensionJS() []byte {
-	return e.extensionJS
+func (e *extension) ExtensionJS() ([]byte, string) {
+	return e.extensionJS, e.extensionJSChecksum
 }
 
 func (e *extension) ExtensionTarGz() ([]byte, string) {

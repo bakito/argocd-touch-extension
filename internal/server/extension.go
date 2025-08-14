@@ -32,6 +32,15 @@ func deploymentHandler(ext extension.Extension) gin.HandlerFunc {
 	return createHandler(contentTypeYAML, ext.ArgoCDDeployment)
 }
 
+// jsHandler returns extension js extension.
+func jsHandler(ext extension.Extension) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Content-Disposition", "attachment; filename="+extension.ExtensionJS)
+		tarGZ, _ := ext.ExtensionJS()
+		c.Data(http.StatusOK, contentTypeTAR, tarGZ)
+	}
+}
+
 // tarHandler returns extension tar archive.
 func tarHandler(ext extension.Extension) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -45,8 +54,9 @@ func tarHandler(ext extension.Extension) gin.HandlerFunc {
 func tarChecksumHandler(ext extension.Extension) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Content-Disposition", "attachment; filename="+extensionChecksum)
-		_, cs := ext.ExtensionTarGz()
-		c.String(http.StatusOK, "%s  %s", cs, extensionFileName)
+		_, csTar := ext.ExtensionTarGz()
+		_, csjs := ext.ExtensionJS()
+		c.String(http.StatusOK, "%s  %s\n%s  %s", csTar, extensionFileName, csjs, extension.ExtensionJS)
 	}
 }
 

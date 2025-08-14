@@ -49,7 +49,8 @@ func runConfig(cmd *cobra.Command, _ []string) error {
 	case "rbac":
 		cmd.Println(string(ext.ProxyRBAC()))
 	case "extension":
-		cmd.Println(string(ext.ExtensionJS()))
+		e, _ := ext.ExtensionJS()
+		cmd.Println(string(e))
 	case "all":
 		cmd.Println("=== ArgoCD Config ===")
 		cmd.Println(string(ext.ArgoCDConfig()))
@@ -58,7 +59,8 @@ func runConfig(cmd *cobra.Command, _ []string) error {
 		cmd.Println("\n=== RBAC Configuration ===")
 		cmd.Println(string(ext.ProxyRBAC()))
 		cmd.Println("\n=== JS Extension ===")
-		cmd.Println(string(ext.ExtensionJS()))
+		e, _ := ext.ExtensionJS()
+		cmd.Println(string(e))
 	default:
 		return fmt.Errorf("invalid output type: %s", outputType)
 	}
