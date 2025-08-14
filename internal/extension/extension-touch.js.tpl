@@ -41,33 +41,33 @@
                         {},
                         React.createElement(
                             "div",
-                            {className: "argo-table-list"},
+                            { className: "argo-table-list" },
                             React.createElement(
                                 "div",
-                                {className: "argo-table-list__head"},
-                                React.createElement("div", {className: "row"}, [
-                                    React.createElement("div", {className: "columns small-4"}, "Field"),
-                                    React.createElement("div", {className: "columns small-4"}, "Value"),
-                                    React.createElement("div", {className: "columns small-4"}, "Last")
+                                { className: "argo-table-list__head" },
+                                React.createElement("div", { className: "row" }, [
+                                    React.createElement("div", { className: "columns small-4" }, "Field"),
+                                    React.createElement("div", { className: "columns small-4" }, "Value"),
+                                    React.createElement("div", { className: "columns small-4" }, "Last")
                                 ])
                             ),
                             React.createElement(
                                 "div",
-                                {className: "argo-table-list__row"},
-                                React.createElement("div", {className: "row"}, [
-                                    React.createElement("div", {className: "columns small-4"}, "Last Touch"),
-                                    React.createElement("div", {className: "columns small-4"}, ""),
-                                    React.createElement("div", {className: "columns small-4"}, resource?.metadata?.annotations?.['argocd.bakito.ch/touch'] || 'Never')
+                                { className: "argo-table-list__row" },
+                                React.createElement("div", { className: "row" }, [
+                                    React.createElement("div", { className: "columns small-4" }, "Last Touch"),
+                                    React.createElement("div", { className: "columns small-4" }, ""),
+                                    React.createElement("div", { className: "columns small-4" }, resource?.metadata?.annotations?.['argocd.bakito.ch/touch'] || 'Never')
                                 ])
                             ),
                             resource?.status?.conditions?.map(condition =>
                                 React.createElement(
                                     "div",
-                                    {className: "argo-table-list__row", key: condition.type},
-                                    React.createElement("div", {className: "row"}, [
-                                        React.createElement("div", {className: "columns small-4"}, condition.type),
-                                        React.createElement("div", {className: "columns small-4"}, condition.status),
-                                        React.createElement("div", {className: "columns small-4"}, condition.lastTransitionTime || '')
+                                    { className: "argo-table-list__row", key: condition.type },
+                                    React.createElement("div", { className: "row" }, [
+                                        React.createElement("div", { className: "columns small-4" }, condition.type),
+                                        React.createElement("div", { className: "columns small-4" }, condition.status),
+                                        React.createElement("div", { className: "columns small-4" }, condition.lastTransitionTime || '')
                                     ])
                                 )
                             )
@@ -82,23 +82,25 @@
                         )
                     ),
                     statusMessage && React.createElement(
-                      'div',
-                      { style: { marginTop: '10px', color: '#333' } },
-                      statusMessage
+                        'div',
+                        { style: { marginTop: '10px', color: '#333' } },
+                        statusMessage
                     ),
                 ]
-            },
-
+            }
         );
     };
-    const component = ( extensionName ) => {
+
+    const component = (extensionName) => {
         return React.createElement("div", {}, `Hello World ${extensionName}`);
     };
+
     {{- range $name, $_ := .Resources }}
     const component_{{$name}} = (context) => {
         return component2(context, "{{$name}}");
     };
     {{- end }}
+
     {{- range $name, $res := .Resources }}
     window.extensionsAPI.registerResourceExtension(
         component_{{$name}},
