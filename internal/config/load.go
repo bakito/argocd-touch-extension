@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regex"
+	"regexp"
 
 	"gopkg.in/yaml.v3"
 )
