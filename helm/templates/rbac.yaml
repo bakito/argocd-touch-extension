@@ -6,16 +6,14 @@ metadata:
   labels:
     {{- include "argocd-touch-extension.labels" . | nindent 4 }}
 rules:
-  {{- range $_, $res := .Values.config }}
-  {{- if $res.resource }}
-  - resources:
-      - "{{ $res.resource }}"
-    apiGroups:
-      - "{{ $res.group }}"
+  {{- range $_, $rule := (required "" .Values.rbac.rules) }}
+  - apiGroups:
+      {{- $rule.apiGroups | toYaml | nindent 6 }}
+    resources:
+      {{- $rule.resources | toYaml | nindent 6 }}
     verbs:
       - get
       - patch
-{{- end }}
 {{- end }}
 
 ---

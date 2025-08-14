@@ -42,4 +42,6 @@ helm upgrade --install argo-cd -n argo-cd oci://ghcr.io/argoproj/argo-helm/argo-
 
 kubectl apply -f testdata/app.yaml
 
+
+helm  upgrade --install argo-cd-touch-extension -n argo-cd ./helm/ -f testdata/test-values.yaml
 ```

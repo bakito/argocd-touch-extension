@@ -7,15 +7,6 @@ fullnameOverride: ""
 # -- Optional labels to apply to all resources
 commonLabels: {}
 
-
-rbac:
-  # -- Specifies whether rbac should be created
-  create: true
-
-serviceAccount:
-  # -- Specifies whether a service account should be created
-  create: true
-
 service:
   # -- Sets the type of the Service
   type: ClusterIP
@@ -106,6 +97,23 @@ deployment:
   # -- Assign custom [affinity] rules to the deployment
   affinity: {}
 
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+
+rbac:
+  # -- Specifies whether rbac should be created
+  create: true
+
+  # -- RBAC rules to create (verbs will be ignored and set to ["get", "patch"])
+  rules: []
+  # - apiGroups:
+  #     - ''
+  #   resources:
+  #     - configmaps
+  #     - pods
+  #     - serviceaccounts
+
 # -- Resources Config for the extension
 config: {}
   # configmaps:
@@ -117,5 +125,5 @@ config: {}
   #   kind: Pod
   #   resource: pods
   #   uiExtension:
-  #     tabTitle: Touch Pod
-  #     icon: fa-box
+#     tabTitle: Touch Pod
+#     icon: fa-box

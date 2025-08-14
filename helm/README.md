@@ -36,6 +36,7 @@ helm install my-argocd-touch-extension oci://ghcr.io/bakito/helm-charts/argocd-t
 | fullnameOverride | string | `""` | String to fully override |
 | nameOverride | string | `""` | String to partially override |
 | rbac.create | bool | `true` | Specifies whether rbac should be created |
+| rbac.rules | list | `[]` | RBAC rules to create (verbs will be ignored and set to ["get", "patch"]) |
 | service.annotations | object | `{}` | Service annotations |
 | service.port | int | `8080` | Service port |
 | service.type | string | `"ClusterIP"` | Sets the type of the Service |

@@ -1,12 +1,13 @@
+
+fullnameOverride: argo-cd-touch-extension
+
 config:
   configmaps:
     group: ""
     kind: ConfigMap
-    resource: configmaps
   pods:
     group: ""
     kind: Pod
-    resource: pods
     uiExtension:
       tabTitle: Touch Pod
       icon: fa-box
@@ -16,3 +17,15 @@ config:
     uiExtension:
       tabTitle: Touch SA
       icon: fa-box
+
+rbac:
+  rules:
+    - apiGroups:
+        - ''
+      resources:
+        - configmaps
+        - pods
+        - serviceaccounts
+
+deployment:
+  debug: true
