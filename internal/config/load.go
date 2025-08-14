@@ -33,5 +33,11 @@ func Load(fileName string) (TouchConfig, error) {
 		return TouchConfig{}, fmt.Errorf("unsupported file format: %s", ext)
 	}
 
+for key := range config.Resources {
+  if !keyPattern.MatchString(key) {
+    return TouchConfig{}, fmt.Errorf("key %q must match pattern %q", key, keyPattern.string())
+  }
+}
+	
 	return config, nil
 }
