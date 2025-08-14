@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var kayPattern = regexp.MustCompile("^[A-Za-z0-9_]{3,}$")
+var keyPattern = regexp.MustCompile("^[A-Za-z0-9_]{3,}$")
 
 func Load(fileName string) (TouchConfig, error) {
 	data, err := os.ReadFile(fileName)
