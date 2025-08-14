@@ -32,6 +32,9 @@ spec:
       containers:
         - name: extension-touch
           image: localhost:5001/argocd-touch-extension
+          ports:
+            - containerPort: 8080
+              name: api
           args:
             - '--config'
             - /tmp/touch/config.yaml
