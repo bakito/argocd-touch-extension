@@ -27,9 +27,9 @@ const (
 	headerArgocdExtensionName = "Argocd-Touch-Extension-Name"
 	headerArgoCDUsername      = "Argocd-Username"
 
-	ApiPathV1        = "/v1"
+	APIPathV1        = "/v1"
 	apiPatchTouch    = "/touch"
-	ApiPathExtension = "/extension/"
+	APIPathExtension = "/extension/"
 )
 
 func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug bool) error {
@@ -41,12 +41,12 @@ func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug 
 		c.String(http.StatusOK, "argocd-touch-extension")
 	})
 
-	v1 := router.Group(ApiPathV1)
+	v1 := router.Group(APIPathV1)
 	if debug {
 		v1.Use(sloggin.New(slog.Default()))
 	}
 
-	v1Ext := v1.Group(ApiPathExtension)
+	v1Ext := v1.Group(APIPathExtension)
 
 	v1Ext.GET(extension.ExtensionJS, jsHandler(ext))
 	v1Ext.GET(extensionFileName, tarHandler(ext))
@@ -78,7 +78,7 @@ func validateArgocdHeaders() gin.HandlerFunc {
 		if !ok {
 			return
 		}
-		if !strings.HasPrefix(c.Request.URL.Path, fmt.Sprintf("%s/%s/%s/", ApiPathV1, apiPatchTouch, extName)) {
+		if !strings.HasPrefix(c.Request.URL.Path, fmt.Sprintf("%s/%s/%s/", APIPathV1, apiPatchTouch, extName)) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Invalid extension name: " + extName,
 			})

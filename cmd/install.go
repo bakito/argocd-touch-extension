@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -40,21 +41,21 @@ func install(cmd *cobra.Command, _ []string) error {
 	if !ok {
 		return fmt.Errorf("missing environment variable: '%s'", EnvExtensionBaseURL)
 	}
-	extURL, err := url.JoinPath(baseURL, server.ApiPathV1, server.ApiPathExtension, extension.ExtensionJS)
+	extURL, err := url.JoinPath(baseURL, server.APIPathV1, server.APIPathExtension, extension.ExtensionJS)
 	if err != nil {
 		return fmt.Errorf("build extension URL: %w", err)
 	}
-	checksumURL, err := url.JoinPath(baseURL, server.ApiPathV1, server.ApiPathExtension, server.ExtensionChecksum)
+	checksumURL, err := url.JoinPath(baseURL, server.APIPathV1, server.APIPathExtension, server.ExtensionChecksum)
 	if err != nil {
 		return fmt.Errorf("build checksum URL: %w", err)
 	}
 	// Download extension file
-	extensionBytes, err := readAllFromURL(extURL)
+	extensionBytes, err := readAllFromURL(cmd.Context(), extURL)
 	if err != nil {
 		return fmt.Errorf("download extension: %w", err)
 	}
 	// Download checksum file
-	checksumBytes, err := readAllFromURL(checksumURL)
+	checksumBytes, err := readAllFromURL(cmd.Context(), checksumURL)
 	if err != nil {
 		return fmt.Errorf("download checksum: %w", err)
 	}
@@ -73,9 +74,13 @@ func install(cmd *cobra.Command, _ []string) error {
 }
 
 // readAllFromURL downloads the content at the given URL and returns the body as bytes.
-func readAllFromURL(u string) ([]byte, error) {
+func readAllFromURL(ctx context.Context, u string) ([]byte, error) {
 	client := &http.Client{Timeout: httpTimeout}
-	resp, err := client.Get(u)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, http.NoBody)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
