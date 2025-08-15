@@ -49,7 +49,6 @@ func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug 
 	v1.GET("extension/"+extensionFileName, tarHandler(ext))
 	v1.GET("extension/"+extensionChecksum, tarChecksumHandler(ext))
 	v1.GET("extension/config", configHandler(ext))
-	v1.GET("extension/deployment", deploymentHandler(ext))
 	v1.GET("extension/rbac", rbacHandler(ext))
 
 	v1Touch := router.Group(touchAPIPath)

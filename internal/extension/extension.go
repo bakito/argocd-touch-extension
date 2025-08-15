@@ -32,18 +32,15 @@ const (
 var (
 	//go:embed argocd-helm-values.yaml.tpl
 	tplArgocdHelmConfig string
-	//go:embed argocd-server-deployment.yaml.tpl
-	tplArgocdServerDeployment string
 	//go:embed extension-touch.js.tpl
 	tplExtension string
 	//go:embed extension-proxy-rbac.yaml.tpl
 	tplRBAC string
 
 	templates = map[string]templateConfig{
-		"config":     {"argocd-helm-values.yaml", tplArgocdHelmConfig},
-		"deployment": {"argocd-server-deployment.yaml", tplArgocdServerDeployment},
-		"extension":  {"extension-touch.js", tplExtension},
-		"rbac":       {"extension-proxy-rbac.yaml", tplRBAC},
+		"config":    {"argocd-helm-values.yaml", tplArgocdHelmConfig},
+		"extension": {"extension-touch.js", tplExtension},
+		"rbac":      {"extension-proxy-rbac.yaml", tplRBAC},
 	}
 )
 
@@ -61,14 +58,12 @@ type Extension interface {
 	ExtensionTarGz() ([]byte, string)
 	ExtensionJS() ([]byte, string)
 	ArgoCDConfig() []byte
-	ArgoCDDeployment() []byte
 	ProxyRBAC() []byte
 }
 
 type extension struct {
 	cfg                  config.TouchConfig
 	argocdConfig         []byte
-	argocdDeployment     []byte
 	extensionJS          []byte
 	extensionJSChecksum  string
 	extensionTar         []byte
@@ -134,10 +129,6 @@ func (e *extension) generateExtensionFiles(uiExtensionTemplate string) error {
 		return &Error{"render config", err}
 	}
 
-	if e.argocdDeployment, err = e.renderTemplate(templates["deployment"]); err != nil {
-		return &Error{"render deployment", err}
-	}
-
 	if e.rbac, err = e.renderTemplate(templates["rbac"]); err != nil {
 		return &Error{"render rbac", err}
 	}
@@ -166,10 +157,6 @@ func (e *extension) renderTemplate(tpl templateConfig) ([]byte, error) {
 
 func (e *extension) ProxyRBAC() []byte {
 	return e.rbac
-}
-
-func (e *extension) ArgoCDDeployment() []byte {
-	return e.argocdDeployment
 }
 
 func (e *extension) ArgoCDConfig() []byte {

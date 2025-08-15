@@ -4,7 +4,8 @@ configs:
   rbac:
     "policy.csv": |-
     {{- range $name, $_ := .Resources }}
-      p, role:readonly, extensions, invoke, touch-{{$name}}, allow
+      p, role:admin,    extensions, invoke, touch-{{$name}}, allow
+      p, role:readonly, extensions, invoke, touch-{{$name}}, deny
     {{- end }}
 
   params:
@@ -23,7 +24,7 @@ configs:
 server:
   initContainers:
     - name: extension-touch
-      image: quay.io/argoprojlabs/argocd-extension-installer:v0.0.5@sha256:27e72f047298188e2de1a73a1901013c274c4760c92f82e6e46cd5fbd0957c6b
+      image: quay.io/argoprojlabs/argocd-extension-installer:v0.0.8@sha256:e7cb054207620566286fce2d809b4f298a72474e0d8779ffa8ec92c3b630f054
       env:
         - name: EXTENSION_URL
           value: {{$.ServiceAddress}}/v1/extension/extension.tar.gz
@@ -33,8 +34,9 @@ server:
         - name: extensions
           mountPath: /tmp/extensions/resources/
       securityContext:
-        runAsUser: 1000
+        runAsUser: 999
         allowPrivilegeEscalation: false
+
   volumeMounts:
     - name: extensions
       mountPath: /tmp/extensions/touch/

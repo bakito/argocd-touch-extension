@@ -28,11 +28,6 @@ func configHandler(ext extension.Extension) gin.HandlerFunc {
 	return createHandler(contentTypeYAML, ext.ArgoCDConfig)
 }
 
-// deploymentHandler returns extension deployment configuration.
-func deploymentHandler(ext extension.Extension) gin.HandlerFunc {
-	return createHandler(contentTypeYAML, ext.ArgoCDDeployment)
-}
-
 // jsHandler returns extension js extension.
 func jsHandler(ext extension.Extension) gin.HandlerFunc {
 	return func(c *gin.Context) {
