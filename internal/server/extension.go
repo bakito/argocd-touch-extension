@@ -13,7 +13,7 @@ const (
 	contentTypeTAR  = "application/x-tar"
 
 	extensionFileName = "extension.tar.gz"
-	extensionChecksum = "extension_checksum.txt"
+	ExtensionChecksum = "extension_checksum.txt"
 )
 
 // createHandler creates a gin.HandlerFunc that returns data with a specified content type.
@@ -49,7 +49,7 @@ func tarHandler(ext extension.Extension) gin.HandlerFunc {
 // tarChecksumHandler returns extension tar archive.
 func tarChecksumHandler(ext extension.Extension) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Header("Content-Disposition", "attachment; filename="+extensionChecksum)
+		c.Header("Content-Disposition", "attachment; filename="+ExtensionChecksum)
 		_, csTar := ext.ExtensionTarGz()
 		_, csjs := ext.ExtensionJS()
 		c.String(http.StatusOK, "%s  %s\n%s  %s", csTar, extensionFileName, csjs, extension.ExtensionJS)
