@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
-
-	"net/url"
+	"time"
 
 	"github.com/bakito/argocd-touch-extension/internal/extension"
 	"github.com/bakito/argocd-touch-extension/internal/server"
@@ -27,6 +27,8 @@ var (
 		Short: "Install the UI extension to argocd server",
 		RunE:  install,
 	}
+
+	httpTimeout = 30 * time.Second
 )
 
 func init() {
@@ -34,73 +36,85 @@ func init() {
 }
 
 func install(cmd *cobra.Command, _ []string) error {
-
-	base, ok := os.LookupEnv(EnvExtensionBaseURL)
+	baseURL, ok := os.LookupEnv(EnvExtensionBaseURL)
 	if !ok {
 		return fmt.Errorf("missing environment variable: '%s'", EnvExtensionBaseURL)
 	}
-
-	extensionURL, err := url.JoinPath(base, server.ApiPathV1, server.ApiPathExtension, extension.ExtensionJS)
+	extURL, err := url.JoinPath(baseURL, server.ApiPathV1, server.ApiPathExtension, extension.ExtensionJS)
 	if err != nil {
-		return err
+		return fmt.Errorf("build extension URL: %w", err)
 	}
-	checkSumURL, err := url.JoinPath(base, server.ApiPathV1, server.ApiPathExtension, server.ExtensionChecksum)
+	checksumURL, err := url.JoinPath(baseURL, server.ApiPathV1, server.ApiPathExtension, server.ExtensionChecksum)
 	if err != nil {
-		return err
+		return fmt.Errorf("build checksum URL: %w", err)
 	}
-
 	// Download extension file
-	resp, err := http.Get(extensionURL)
+	extensionBytes, err := readAllFromURL(extURL)
 	if err != nil {
-		return fmt.Errorf("failed to download extension: %v", err)
+		return fmt.Errorf("download extension: %w", err)
+	}
+	// Download checksum file
+	checksumBytes, err := readAllFromURL(checksumURL)
+	if err != nil {
+		return fmt.Errorf("download checksum: %w", err)
+	}
+	// Calculate SHA256 of extension
+	actualChecksum := checksumHex(extensionBytes)
+	// Compare checksums
+	expectedChecksum, found := extractChecksumFor(string(checksumBytes), extension.ExtensionJS)
+	if !found {
+		return fmt.Errorf("no checksum found for %s", extension.ExtensionJS)
+	}
+	if actualChecksum != expectedChecksum {
+		return fmt.Errorf("checksum mismatch. Expected: %s, got: %s", expectedChecksum, actualChecksum)
+	}
+	cmd.Println(extURL, checksumURL)
+	return nil
+}
+
+// readAllFromURL downloads the content at the given URL and returns the body as bytes.
+func readAllFromURL(u string) ([]byte, error) {
+	client := &http.Client{Timeout: httpTimeout}
+	resp, err := client.Get(u)
+	if err != nil {
+		return nil, err
 	}
 	defer resp.Body.Close()
-
-	extensionBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read extension body: %v", err)
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("unexpected status %d from %s", resp.StatusCode, u)
 	}
-
-	// Download checksum file
-	respChecksum, err := http.Get(checkSumURL)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("failed to download checksum: %v", err)
+		return nil, err
 	}
-	defer respChecksum.Body.Close()
+	return b, nil
+}
 
-	checksumBytes, err := io.ReadAll(respChecksum.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read checksum body: %v", err)
-	}
+// checksumHex returns the SHA256 hex string for the provided bytes.
+func checksumHex(b []byte) string {
+	sum := sha256.Sum256(b)
+	return hex.EncodeToString(sum[:])
+}
 
-	// Calculate SHA256 of extension
-	hash := sha256.Sum256(extensionBytes)
-	actualChecksum := hex.EncodeToString(hash[:])
-
-	// Compare checksums
-	expectedChecksum := strings.TrimSpace(string(checksumBytes))
-	lines := strings.Split(expectedChecksum, "\n")
-	foundChecksum := false
+// extractChecksumFor scans a checksum file content and returns the checksum for the target filename.
+// It tolerates extra whitespace and ignores unrelated lines.
+func extractChecksumFor(checksumFileContent, targetFile string) (string, bool) {
+	lines := strings.Split(strings.TrimSpace(checksumFileContent), "\n")
 	for _, line := range lines {
-		if strings.Contains(line, "extension-touch.js") {
-			fields := strings.Fields(line)
-			if len(fields) >= 1 {
-				expectedChecksum = fields[0]
-				if actualChecksum != expectedChecksum {
-					return fmt.Errorf("checksum mismatch. Expected: %s, got: %s", expectedChecksum, actualChecksum)
-				}
-				foundChecksum = true
-				break
-			}
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) == 0 {
+			continue
+		}
+		// Common formats: "<hex>  filename" or "<hex> filename"
+		checkHex := fields[0]
+		filename := fields[len(fields)-1]
+		if filename == targetFile {
+			return checkHex, true
 		}
 	}
-	if !foundChecksum {
-		return fmt.Errorf("no checksum found for extension-touch.js")
-	}
-	if err != nil {
-		return err
-	}
-	cmd.Println(extensionURL, checkSumURL)
-
-	return nil
+	return "", false
 }
