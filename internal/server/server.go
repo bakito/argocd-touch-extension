@@ -26,9 +26,10 @@ const (
 	headerArgocdProjName      = "Argocd-Project-Name"
 	headerArgocdExtensionName = "Argocd-Touch-Extension-Name"
 	headerArgoCDUsername      = "Argocd-Username"
-	// headerArgoCDGroups      = "Argocd-User-Groups" // .
 
-	touchAPIPath = "/v1/touch"
+	APIPathV1        = "/v1"
+	apiPatchTouch    = "/touch"
+	APIPathExtension = "/extension/"
 )
 
 func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug bool) error {
@@ -40,18 +41,20 @@ func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug 
 		c.String(http.StatusOK, "argocd-touch-extension")
 	})
 
-	v1 := router.Group("/v1")
+	v1 := router.Group(APIPathV1)
 	if debug {
 		v1.Use(sloggin.New(slog.Default()))
 	}
 
-	v1.GET("extension/"+extension.ExtensionJS, jsHandler(ext))
-	v1.GET("extension/"+extensionFileName, tarHandler(ext))
-	v1.GET("extension/"+extensionChecksum, tarChecksumHandler(ext))
-	v1.GET("extension/config", configHandler(ext))
-	v1.GET("extension/rbac", rbacHandler(ext))
+	v1Ext := v1.Group(APIPathExtension)
 
-	v1Touch := router.Group(touchAPIPath)
+	v1Ext.GET(extension.ExtensionJS, jsHandler(ext))
+	v1Ext.GET(extensionFileName, tarHandler(ext))
+	v1Ext.GET(ExtensionChecksum, tarChecksumHandler(ext))
+	v1Ext.GET("config", configHandler(ext))
+	v1Ext.GET("rbac", rbacHandler(ext))
+
+	v1Touch := v1.Group(apiPatchTouch)
 	v1Touch.Use(validateArgocdHeaders())
 
 	for name, res := range ext.Resources() {
@@ -75,7 +78,7 @@ func validateArgocdHeaders() gin.HandlerFunc {
 		if !ok {
 			return
 		}
-		if !strings.HasPrefix(c.Request.URL.Path, fmt.Sprintf("%s/%s/", touchAPIPath, extName)) {
+		if !strings.HasPrefix(c.Request.URL.Path, fmt.Sprintf("%s/%s/%s/", APIPathV1, apiPatchTouch, extName)) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Invalid extension name: " + extName,
 			})

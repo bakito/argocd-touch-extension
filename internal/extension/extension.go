@@ -15,6 +15,7 @@ import (
 
 	"github.com/bakito/argocd-touch-extension/internal/config"
 	"github.com/bakito/argocd-touch-extension/internal/k8s"
+	"github.com/bakito/argocd-touch-extension/internal/version"
 	sprig "github.com/go-task/slim-sprig/v3"
 )
 
@@ -144,6 +145,7 @@ func (e *extension) renderTemplate(tpl templateConfig) ([]byte, error) {
 
 	var buf bytes.Buffer
 	data := map[string]any{
+		"Version":          version.Version,
 		"Resources":        e.cfg.Resources,
 		"ServiceAddress":   e.cfg.ServiceAddress,
 		"ResourcesByGroup": e.resourcesByGroup,

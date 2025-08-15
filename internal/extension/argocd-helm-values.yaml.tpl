@@ -24,22 +24,12 @@ configs:
 server:
   initContainers:
     - name: extension-touch
-      image: quay.io/argoprojlabs/argocd-extension-installer:v0.0.8@sha256:e7cb054207620566286fce2d809b4f298a72474e0d8779ffa8ec92c3b630f054
+      image: ghcr.io/bakito/argocd-touch-extension:{{$.Version}}
+      args:
+        - install
       env:
-        - name: EXTENSION_URL
-          value: {{$.ServiceAddress}}/v1/extension/extension.tar.gz
-        - name: EXTENSION_CHECKSUM_URL
-          value: {{$.ServiceAddress}}/v1/extension/extension_checksum.txt
+        - name: EXTENSION_BASE_URL
+          value: {{$.ServiceAddress}}
       volumeMounts:
-        - name: extensions
-          mountPath: /tmp/extensions/resources/
-      securityContext:
-        runAsUser: 999
-        allowPrivilegeEscalation: false
-
-  volumeMounts:
-    - name: extensions
-      mountPath: /tmp/extensions/touch/
-  volumes:
-    - name: extensions
-      emptyDir: {}
+        - name: tmp
+          mountPath: /tmp

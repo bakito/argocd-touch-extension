@@ -23,4 +23,4 @@ LABEL maintainer="bakito <github@bakito.ch>"
 EXPOSE 8080
 ENTRYPOINT ["/opt/go/argocd-touch-extension"]
 COPY --from=builder /go/src/app/argocd-touch-extension /opt/go/argocd-touch-extension
-USER 1001
+USER 999
