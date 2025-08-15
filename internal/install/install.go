@@ -82,7 +82,7 @@ func install(extensionBytes []byte) error {
 
 	if fi, err := os.Stat(dir); err != nil || !fi.IsDir() {
 		slog.Info("Create extension dir", "dir", dir)
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
 			return err
 		}
 	}
@@ -90,7 +90,7 @@ func install(extensionBytes []byte) error {
 	extPath := filepath.Join(dir, extension.ExtensionJS)
 
 	slog.Info("Installing extension to", "path", extPath)
-	return os.WriteFile(extPath, extensionBytes, 0644)
+	return os.WriteFile(extPath, extensionBytes, 0o644)
 }
 
 // readAllFromURL downloads the content at the given URL and returns the body as bytes.
