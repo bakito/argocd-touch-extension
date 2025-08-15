@@ -44,8 +44,6 @@ func runConfig(cmd *cobra.Command, _ []string) error {
 	switch outputType {
 	case "config":
 		cmd.Println(string(ext.ArgoCDConfig()))
-	case "deployment":
-		cmd.Println(string(ext.ArgoCDDeployment()))
 	case "rbac":
 		cmd.Println(string(ext.ProxyRBAC()))
 	case "extension":
@@ -54,8 +52,6 @@ func runConfig(cmd *cobra.Command, _ []string) error {
 	case "all":
 		cmd.Println("=== ArgoCD Config ===")
 		cmd.Println(string(ext.ArgoCDConfig()))
-		cmd.Println("\n=== ArgoCD Deployment ===")
-		cmd.Println(string(ext.ArgoCDDeployment()))
 		cmd.Println("\n=== RBAC Configuration ===")
 		cmd.Println(string(ext.ProxyRBAC()))
 		cmd.Println("\n=== JS Extension ===")
