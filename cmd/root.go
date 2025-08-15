@@ -13,10 +13,10 @@ import (
 
 var (
 	rootCmd = &cobra.Command{
-		Use:     "argocd-touch-extension",
+		Use:     version.Name,
 		Short:   "ArgoCD Touch Extension",
 		RunE:    runRoot,
-		Version: version.Version + " (" + version.Build + ")",
+		Version: version.Print(),
 	}
 	configFile        string
 	serviceAddress    string
