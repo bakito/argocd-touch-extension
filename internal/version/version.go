@@ -7,7 +7,7 @@ import (
 // Build information. Populated at build-time.
 var (
 	Version = "dev"
-	Build   string
+	Build   = "N/A"
 )
 
 // versionInfoTmpl contains the template used by Print.

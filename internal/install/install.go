@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -20,6 +21,8 @@ import (
 const (
 	envExtensionBaseURL         = "EXTENSION_BASE_URL"
 	envExtensionInstallationDir = "EXTENSION_INSTALLATION_DIR"
+
+	defaultInstallationDir = "/tmp/extensions/"
 )
 
 var httpTimeout = 30 * time.Second
@@ -61,7 +64,33 @@ func Do(ctx context.Context) error {
 		return fmt.Errorf("checksum mismatch. Expected: %s, got: %s", expectedChecksum, actualChecksum)
 	}
 	slog.Info("Checksum OK", "sum", actualChecksum)
+	if err := install(extensionBytes); err != nil {
+		return err
+	}
+	slog.Info("Extension successfully installed")
 	return nil
+}
+
+func install(extensionBytes []byte) error {
+	dir := defaultInstallationDir
+	if val, ok := os.LookupEnv(envExtensionInstallationDir); ok {
+		dir = val
+	}
+	if !strings.HasSuffix(dir, "/touch") {
+		dir = filepath.Join(dir, "touch")
+	}
+
+	if fi, err := os.Stat(dir); err != nil || !fi.IsDir() {
+		slog.Info("Create extension dir", "dir", dir)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+
+	extPath := filepath.Join(dir, extension.ExtensionJS)
+
+	slog.Info("Installing extension to", "path", extPath)
+	return os.WriteFile(extPath, extensionBytes, 0644)
 }
 
 // readAllFromURL downloads the content at the given URL and returns the body as bytes.
