@@ -1,7 +1,15 @@
 # ArgoCD Extension to touch Resources
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/argocd-touch-extension)](https://artifacthub.io/packages/search?repo=argocd-touch-extension)
 
-This ArgoCD extension adds an additional tab to selected resources, allowing to touch (add/update an annotation) these.
-This can be helpful to trigger refresh [ExternalSecrets](https://external-secrets.io/latest/introduction/faq/#can-i-manually-trigger-a-secret-refresh).
+
+An ArgoCD extension, enabling to touch resources by adding an annotation.
+This is useful for e.g. ArgoCD to trigger a re-sync of a resource.
+
+Resources can be configured individually, where each resource will receive an additional tab in the Resource detail
+view.
+
+This can be helpful to trigger
+refresh [ExternalSecrets](https://external-secrets.io/latest/introduction/faq/#can-i-manually-trigger-a-secret-refresh).
 
 ## Config
 
@@ -9,39 +17,6 @@ Config for ArgoCD can be generated. Use `argocd-touch-extension config --help` f
 
 ## Links
 
-https://argo-cd.readthedocs.io/en/stable/developer-guide/extensions/ui-extensions/
-https://argo-cd.readthedocs.io/en/stable/developer-guide/extensions/proxy-extensions/
-
-https://github.com/argoproj-labs/argocd-extension-installer
-
-https://external-secrets.io/latest/introduction/faq/#can-i-manually-trigger-a-secret-refresh
-
-https://github.com/argoproj-labs/argocd-ephemeral-access
-
-https://github.com/opsmx-cnoe/argocd-extensions/blob/main/resources/extension-topmenu.js
-
-## Setup
-
-```bash
-
-# install registry
-
-docker start kind-registry || docker run -d --restart=always -p "127.0.0.1:5001:5000" --name kind-registry registry:3
-
-docker build -t localhost:5001/argocd-touch-extension .
-docker push localhost:5001/argocd-touch-extension
-
-kind create cluster --config testdata/kind-config.yaml 
-
-docker network connect kind kind-registry || true
-kubectl create ns argo-cd
-
-kubectl apply -f testdata/touch-config.yaml -f testdata/touch-deployment.yaml
-
-helm upgrade --install argo-cd -n argo-cd oci://ghcr.io/argoproj/argo-helm/argo-cd -f testdata/argo-cd-values.yaml 
-
-kubectl apply -f testdata/app.yaml
-
-
-helm  upgrade --install argo-cd-touch-extension -n argo-cd ./helm/ -f testdata/test-values.yaml
-```
+- [UI Extensions](https://argo-cd.readthedocs.io/en/stable/developer-guide/extensions/ui-extensions/)
+- [Proxy Extensions](https://argo-cd.readthedocs.io/en/stable/developer-guide/extensions/proxy-extensions/)
+- [Argo CD Extension Installer](https://github.com/argoproj-labs/argocd-extension-installer)
