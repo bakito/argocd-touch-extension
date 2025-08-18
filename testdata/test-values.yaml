@@ -28,6 +28,8 @@ rbac:
         - serviceaccounts
 
 deployment:
+  image:
+    imagePullPolicy: Always
   debug: true
   podAnnotations:
     foo: bar
