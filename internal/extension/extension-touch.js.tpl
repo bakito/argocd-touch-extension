@@ -83,7 +83,7 @@
                     ),
                     statusMessage && React.createElement(
                         'div',
-                        { style: { marginTop: '10px', color: '#333' } },
+                        { style: { marginTop: '10px' } },
                         statusMessage
                     ),
                 ]
