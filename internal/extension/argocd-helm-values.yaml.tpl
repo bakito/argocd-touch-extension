@@ -27,6 +27,7 @@ server:
       image: ghcr.io/bakito/argocd-touch-extension:{{$.Version}}
       args:
         - install
+        # - "--graceful" # enable graceful error handling
       env:
         - name: EXTENSION_BASE_URL
           value: {{$.ServiceAddress}}
