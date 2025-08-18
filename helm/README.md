@@ -63,6 +63,7 @@ rbac:
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| commonAnnotations | object | `{}` | Optional annotations to apply to all resources |
 | commonLabels | object | `{}` | Optional labels to apply to all resources |
 | config | object | `{}` | Resources Config for the extension |
 | deployment.affinity | object | `{}` | Assign custom [affinity] rules to the deployment |

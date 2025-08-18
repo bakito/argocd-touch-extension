@@ -5,6 +5,10 @@ metadata:
   name: {{ template "argocd-touch-extension.fullname" . }}
   labels:
     {{- include "argocd-touch-extension.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+  {{- . | toYaml | nindent 4 }}
+  {{- end }}
 rules:
   {{- range $_, $rule := (required "" .Values.rbac.rules) }}
   - apiGroups:
@@ -24,6 +28,10 @@ metadata:
   name: {{ template "argocd-touch-extension.fullname" . }}
   labels:
     {{- include "argocd-touch-extension.labels" . | nindent 4 }}
+  {{- with .Values.commonAnnotations }}
+  annotations:
+  {{- . | toYaml | nindent 4 }}
+  {{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
