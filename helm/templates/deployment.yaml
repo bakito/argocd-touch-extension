@@ -17,8 +17,14 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "argocd-touch-extension.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- with .Values.deployment.podLabels }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
       annotations:
         checksum/config: {{ .Values.config | toYaml | sha256sum }}
+        {{- with .Values.deployment.podAnnotations }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
     spec:
     {{- with .Values.deployment.imagePullSecrets }}
       imagePullSecrets:

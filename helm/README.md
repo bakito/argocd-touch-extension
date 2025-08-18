@@ -73,6 +73,8 @@ rbac:
 | deployment.imagePullSecrets | list | `[]` | Secrets with credentials to pull images from a private registry. Registry secret names as an array. |
 | deployment.livenessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/","port":"api"}}` | Liveness Probe |
 | deployment.nodeSelector | object | `{}` | [Node selector] |
+| deployment.podAnnotations | object | `{}` | Assign custom annotations to the pods |
+| deployment.podLabels | object | `{}` | Assign custom labels to the pods |
 | deployment.readinessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/","port":"api"}}` | Readiness Probe |
 | deployment.replicaCount | int | `1` | The number of pods to run |
 | deployment.resources | object | `{}` | Resource limits and requests for the pods. |

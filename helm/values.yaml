@@ -20,7 +20,7 @@ deployment:
   replicaCount: 1
 
   image:
-    # --  Repository to use
+    # -- Repository to use
     repository: ghcr.io/bakito/argocd-touch-extension
     # -- Overrides the image tag (default is the chart appVersion)
     tag:
@@ -96,6 +96,12 @@ deployment:
 
   # -- Assign custom [affinity] rules to the deployment
   affinity: {}
+
+  # -- Assign custom labels to the pods
+  podLabels: {}
+
+  # -- Assign custom annotations to the pods
+  podAnnotations: {}
 
 serviceAccount:
   # -- Specifies whether a service account should be created

@@ -29,3 +29,7 @@ rbac:
 
 deployment:
   debug: true
+  podAnnotations:
+    foo: bar
+  podLabels:
+    bar: foo
