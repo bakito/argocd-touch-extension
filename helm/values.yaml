@@ -4,6 +4,9 @@ nameOverride: ""
 # -- String to fully override
 fullnameOverride: ""
 
+# -- Optional annotations to apply to all resources
+commonAnnotations: {}
+
 # -- Optional labels to apply to all resources
 commonLabels: {}
 
