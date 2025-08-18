@@ -15,6 +15,7 @@ import (
 	"github.com/bakito/argocd-touch-extension/internal/config"
 	"github.com/bakito/argocd-touch-extension/internal/extension"
 	"github.com/bakito/argocd-touch-extension/internal/k8s"
+	"github.com/bakito/argocd-touch-extension/internal/version"
 	"github.com/gin-gonic/gin"
 	sloggin "github.com/samber/slog-gin"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -58,8 +59,13 @@ func Run(ctx context.Context, client k8s.Client, ext extension.Extension, debug 
 	v1Touch.Use(validateArgocdHeaders())
 
 	for name, res := range ext.Resources() {
-		slog.With("resource", name, "group", res.Group, "version", res.Version, "kind", res.Kind).
-			InfoContext(ctx, "Registering handler")
+		slog.With(
+			"resource", name,
+			"group", res.Group,
+			"version", res.Version,
+			"kind", res.Kind,
+			"path", v1Touch.BasePath()+"/"+name,
+		).InfoContext(ctx, "Registering handler")
 		v1Touch.PUT(name+"/:namespace/:name", handleTouch(client, res))
 	}
 
@@ -78,7 +84,7 @@ func validateArgocdHeaders() gin.HandlerFunc {
 		if !ok {
 			return
 		}
-		if !strings.HasPrefix(c.Request.URL.Path, fmt.Sprintf("%s/%s/%s/", APIPathV1, apiPatchTouch, extName)) {
+		if !strings.HasPrefix(c.Request.URL.Path, fmt.Sprintf("%s%s/%s/", APIPathV1, apiPatchTouch, extName)) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Invalid extension name: " + extName,
 			})
@@ -101,7 +107,8 @@ func validateHeader(c *gin.Context, name string) (bool, string) {
 }
 
 func start(ctx context.Context, router *gin.Engine) error {
-	slog.With("port", ":8080").InfoContext(ctx, "Starting server")
+	slog.With("port", ":8080", "version", version.Version, "build", version.Build).
+		InfoContext(ctx, "Starting server")
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: router,
