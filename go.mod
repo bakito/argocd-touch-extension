@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-task/slim-sprig/v3 v3.0.0
-	github.com/samber/slog-gin v1.15.1
+	github.com/samber/slog-gin v1.16.1
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
 	gopkg.in/yaml.v3 v3.0.1
