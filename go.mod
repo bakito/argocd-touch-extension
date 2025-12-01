@@ -1,6 +1,6 @@
 module github.com/bakito/argocd-touch-extension
 
-go 1.25.0
+go 1.25.4
 
 require (
 	github.com/gin-gonic/gin v1.11.0
