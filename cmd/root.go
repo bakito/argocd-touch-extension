@@ -39,6 +39,7 @@ func init() {
 
 func initConfigFlags(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&extensionTemplate, "extension-template", "", "Allows overwriting the UI extension template.")
+	//nolint:revive // http is ok for service address
 	cmd.Flags().
 		StringVar(&serviceAddress, "service-address", "http://argo-cd-touch-extension.svc.cluster.local:8080", "Service address")
 	cmd.Flags().StringVarP(&configFile, "config", "c", "", "Location of the config file")
